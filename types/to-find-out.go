@@ -22,38 +22,40 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package datatype
+package types
+
+import "github.com/tradalia/sick-engine/data"
 
 //=============================================================================
 //===
-//=== Map
+//=== ToFindOut
 //===
 //=============================================================================
 
-type MapType struct {
-	keyType   Type
-	valueType Type
+type ToFindOutType struct {
+	Name  string
+	Info *data.Info
 }
 
 //=============================================================================
 
-func NewMapType(keyType, valueType Type) *MapType {
-	return &MapType{
-		keyType  : keyType,
-		valueType: valueType,
+func NewToFindOutType(name string, info *data.Info) *ToFindOutType {
+	return &ToFindOutType{
+		Name: name,
+		Info: info,
 	}
 }
 
 //=============================================================================
 
-func (t *MapType) Id() int8 {
-	return idMap
+func (t *ToFindOutType) Id() int8 {
+	return idToFindOut
 }
 
 //=============================================================================
 
-func (t *MapType) String() string {
-	return "map="+ t.keyType.String() +":"+ t.valueType.String()
+func (t *ToFindOutType) String() string {
+	return "tfo"
 }
 
 //=============================================================================

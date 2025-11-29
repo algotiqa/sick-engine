@@ -24,7 +24,20 @@ THE SOFTWARE.
 
 package expression
 
-import "github.com/tradalia/sick-engine/datatype"
+import (
+	"github.com/tradalia/sick-engine/types"
+	"github.com/tradalia/sick-engine/values"
+)
+
+//=============================================================================
+//===
+//=== Evaluator
+//===
+//=============================================================================
+
+type Env interface {
+	CallFunction(fqn string, object any) (values.Value, error)
+}
 
 //=============================================================================
 //===
@@ -33,40 +46,8 @@ import "github.com/tradalia/sick-engine/datatype"
 //=============================================================================
 
 type Expression interface {
-	Eval() (*ValueSet,error)
-	Type() datatype.Type
-//	Text() string
-}
-
-//=============================================================================
-//===
-//=== ConstantValue
-//===
-//=============================================================================
-
-type ConstantValueExpression struct {
-	ValueSet *ValueSet
-}
-
-//=============================================================================
-
-func NewConstantValueExpression(v Value) *ConstantValueExpression {
-	vs := NewValueSet(v)
-	return &ConstantValueExpression{
-		ValueSet: vs,
-	}
-}
-
-//=============================================================================
-
-func (e *ConstantValueExpression) Eval() (*ValueSet,error) {
-	return e.ValueSet,nil
-}
-
-//=============================================================================
-
-func (e *ConstantValueExpression) Type() datatype.Type {
-	return e.ValueSet.values[0].Type()
+	Eval() (values.Value,error)
+	Type() types.Type
 }
 
 //=============================================================================

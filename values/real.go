@@ -22,49 +22,51 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package expression
+package values
 
-import "github.com/tradalia/sick-engine/datatype"
+import (
+	"github.com/tradalia/sick-engine/types"
+)
 
 //=============================================================================
 //===
-//=== Bool value
+//=== Real value
 //===
 //=============================================================================
 
-type BoolValue struct {
-	value bool
+type RealValue struct {
+	value float64
 }
 
 //=============================================================================
 
-func NewBoolValue(value bool) *BoolValue {
-	return &BoolValue{
+func NewRealValue(value float64) *RealValue {
+	return &RealValue{
 		value: value,
 	}
 }
 
 //=============================================================================
 
-func (v *BoolValue) Data() any {
+func (v *RealValue) Data() any {
 	return v.value
 }
 
 //=============================================================================
 
-func (v *BoolValue) Type() datatype.Type {
-	return datatype.NewBoolType()
+func (v *RealValue) Type() types.Type {
+	return types.NewRealType()
 }
 
 //=============================================================================
 
-func (v *BoolValue) Equals(other Value) bool {
+func (v *RealValue) Equals(other Value) bool {
 	return false
 }
 
 //=============================================================================
 
-func (v *BoolValue) LessThan(other Value) bool {
+func (v *RealValue) LessThan(other Value) bool {
 	return false
 }
 

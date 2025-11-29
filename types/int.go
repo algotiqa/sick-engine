@@ -1,6 +1,6 @@
 //=============================================================================
 /*
-Copyright © 2024 Andrea Carboni andrea.carboni71@gmail.com
+Copyright © 2025 Andrea Carboni andrea.carboni71@gmail.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,53 +22,37 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package expression
-
-import (
-	"github.com/tradalia/sick-engine/data"
-	"github.com/tradalia/sick-engine/datatype"
-)
+package types
 
 //=============================================================================
 //===
-//=== Time value
+//=== Int
 //===
 //=============================================================================
 
-type TimeValue struct {
-	value *data.Time
+type IntType struct {
 }
 
 //=============================================================================
 
-func NewTimeValue(value *data.Time) *TimeValue {
-	return &TimeValue{
-		value: value,
-	}
+var intType = &IntType{}
+
+//=============================================================================
+
+func NewIntType() *IntType {
+	return intType
 }
 
 //=============================================================================
 
-func (v *TimeValue) Data() any {
-	return v.value
+func (IntType) Id() int8 {
+	return idInt
 }
 
 //=============================================================================
 
-func (v *TimeValue) Type() datatype.Type {
-	return datatype.NewTimeType()
-}
-
-//=============================================================================
-
-func (v *TimeValue) Equals(other Value) bool {
-	return false
-}
-
-//=============================================================================
-
-func (v *TimeValue) LessThan(other Value) bool {
-	return false
+func (IntType) String() string {
+	return "int"
 }
 
 //=============================================================================

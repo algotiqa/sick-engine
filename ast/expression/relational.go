@@ -24,7 +24,10 @@ THE SOFTWARE.
 
 package expression
 
-import "github.com/tradalia/sick-engine/datatype"
+import (
+	"github.com/tradalia/sick-engine/types"
+	"github.com/tradalia/sick-engine/values"
+)
 
 //=============================================================================
 //===
@@ -48,7 +51,7 @@ func NewEqualExpression(left, right Expression) *EqualExpression {
 
 //=============================================================================
 
-func (e *EqualExpression) Eval() (*ValueSet,error) {
+func (e *EqualExpression) Eval() (values.Value,error) {
 	left, err1 := e.left .Eval()
 	right,err2 := e.right.Eval()
 
@@ -66,7 +69,7 @@ func (e *EqualExpression) Eval() (*ValueSet,error) {
 
 //=============================================================================
 
-func (e *EqualExpression) Type() datatype.Type {
+func (e *EqualExpression) Type() types.Type {
 	return nil
 }
 
@@ -92,13 +95,13 @@ func NewNotEqualExpression(left, right Expression) *NotEqualExpression {
 
 //=============================================================================
 
-func (e *NotEqualExpression) Eval() (*ValueSet,error) {
+func (e *NotEqualExpression) Eval() (values.Value,error) {
 	return nil,nil
 }
 
 //=============================================================================
 
-func (e *NotEqualExpression) Type() datatype.Type {
+func (e *NotEqualExpression) Type() types.Type {
 	return nil
 }
 
@@ -115,13 +118,13 @@ type LessOrEqualExpression struct {
 
 //=============================================================================
 
-func (e *LessOrEqualExpression) Eval() (*ValueSet,error) {
+func (e *LessOrEqualExpression) Eval() (values.Value,error) {
 	return nil,nil
 }
 
 //=============================================================================
 
-func (e *LessOrEqualExpression) Type() datatype.Type {
+func (e *LessOrEqualExpression) Type() types.Type {
 	return nil
 }
 
@@ -147,13 +150,13 @@ type GreaterOrEqualExpression struct {
 
 //=============================================================================
 
-func (e *GreaterOrEqualExpression) Eval() (*ValueSet,error) {
+func (e *GreaterOrEqualExpression) Eval() (values.Value,error) {
 	return nil,nil
 }
 
 //=============================================================================
 
-func (e *GreaterOrEqualExpression) Type() datatype.Type {
+func (e *GreaterOrEqualExpression) Type() types.Type {
 	return nil
 }
 
@@ -179,13 +182,13 @@ type LessThanExpression struct {
 
 //=============================================================================
 
-func (e *LessThanExpression) Eval() (*ValueSet,error) {
+func (e *LessThanExpression) Eval() (values.Value,error) {
 	return nil,nil
 }
 
 //=============================================================================
 
-func (e *LessThanExpression) Type() datatype.Type {
+func (e *LessThanExpression) Type() types.Type {
 	return nil
 }
 
@@ -211,13 +214,13 @@ type GreaterThanExpression struct {
 
 //=============================================================================
 
-func (e *GreaterThanExpression) Eval() (*ValueSet,error) {
+func (e *GreaterThanExpression) Eval() (values.Value,error) {
 	return nil,nil
 }
 
 //=============================================================================
 
-func (e *GreaterThanExpression) Type() datatype.Type {
+func (e *GreaterThanExpression) Type() types.Type {
 	return nil
 }
 

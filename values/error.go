@@ -22,95 +22,52 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package datatype
+package values
+
+import (
+	"github.com/tradalia/sick-engine/types"
+)
 
 //=============================================================================
 //===
-//=== Enum
+//=== Error value
 //===
 //=============================================================================
 
-type EnumType struct {
-	name    string
-	items   []*EnumItem
-	itemMap map[string]*EnumItem
+type ErrorValue struct {
+	value string
 }
 
 //=============================================================================
 
-func NewEnumType(name string) *EnumType {
-	return &EnumType{
-		name   : name,
-		itemMap: make(map[string]*EnumItem),
+func NewErrorValue(value string) *ErrorValue {
+	return &ErrorValue{
+		value: value,
 	}
 }
 
 //=============================================================================
 
-func (e *EnumType) Name() string {
-	return e.name
+func (v *ErrorValue) Data() any {
+	return v.value
 }
 
 //=============================================================================
 
-func (e *EnumType) AddItem(i *EnumItem) bool {
-	if _,ok := e.itemMap[i.Name]; ok {
-		return false
-	}
-
-	e.items = append(e.items, i)
-	e.itemMap[i.Name] = i
-	return true
+func (v *ErrorValue) Type() types.Type {
+	return types.NewErrorType()
 }
 
 //=============================================================================
 
-func (e *EnumType) Items() []*EnumItem {
-	return e.items
+func (v *ErrorValue) Equals(other Value) bool {
+	return false
 }
 
 //=============================================================================
 
-func (e *EnumType) Size() int {
-	return len(e.items)
-}
-
-//=============================================================================
-
-func (e *EnumType) AssignCodes() {
-	for i, item := range e.items {
-		item.Code = i+1
-	}
-}
-
-//=============================================================================
-
-func (e *EnumType) Id() int8 {
-	return idEnum
-}
-
-//=============================================================================
-
-func (e *EnumType) String() string {
-	return e.name
-}
-
-//=============================================================================
-//===
-//=== EnumItem
-//===
-//=============================================================================
-
-type EnumItem struct {
-	Name  string
-	Code  int
-	Value string
-}
-
-//=============================================================================
-
-func NewEnumItem(name string, code int, value string) *EnumItem {
-	return &EnumItem{name, code, value}
+func (v *ErrorValue) LessThan(other Value) bool {
+	return false
 }
 
 //=============================================================================

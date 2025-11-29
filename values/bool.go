@@ -22,37 +22,52 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package datatype
+package values
+
+import (
+	"github.com/tradalia/sick-engine/types"
+)
 
 //=============================================================================
 //===
-//=== String
+//=== Bool value
 //===
 //=============================================================================
 
-type StringType struct {
+type BoolValue struct {
+	value bool
 }
 
 //=============================================================================
 
-var stringType = &StringType{}
-
-//=============================================================================
-
-func NewStringType() *StringType {
-	return stringType
+func NewBoolValue(value bool) *BoolValue {
+	return &BoolValue{
+		value: value,
+	}
 }
 
 //=============================================================================
 
-func (StringType) Id() int8 {
-	return idString
+func (v *BoolValue) Data() any {
+	return v.value
 }
 
 //=============================================================================
 
-func (StringType) String() string {
-	return "string"
+func (v *BoolValue) Type() types.Type {
+	return types.NewBoolType()
+}
+
+//=============================================================================
+
+func (v *BoolValue) Equals(other Value) bool {
+	return false
+}
+
+//=============================================================================
+
+func (v *BoolValue) LessThan(other Value) bool {
+	return false
 }
 
 //=============================================================================

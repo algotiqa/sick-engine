@@ -1,6 +1,6 @@
 //=============================================================================
 /*
-Copyright © 2025 Andrea Carboni andrea.carboni71@gmail.com
+Copyright © 2024 Andrea Carboni andrea.carboni71@gmail.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,36 +22,53 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package datatype
+package values
+
+import (
+	"github.com/tradalia/sick-engine/data"
+	"github.com/tradalia/sick-engine/types"
+)
 
 //=============================================================================
 //===
-//=== ToFindOut
+//=== Date value
 //===
 //=============================================================================
 
-type ToFindOutType struct {
-	name string
+type DateValue struct {
+	value *data.Date
 }
 
 //=============================================================================
 
-func NewToFindOutType(name string) *ToFindOutType {
-	return &ToFindOutType{
-		name: name,
+func NewDateValue(value *data.Date) *DateValue {
+	return &DateValue{
+		value: value,
 	}
 }
 
 //=============================================================================
 
-func (ToFindOutType) Id() int8 {
-	return idToFindOut
+func (v *DateValue) Data() any {
+	return v.value
 }
 
 //=============================================================================
 
-func (ToFindOutType) String() string {
-	return "tfo"
+func (v *DateValue) Type() types.Type {
+	return types.NewDateType()
+}
+
+//=============================================================================
+
+func (v *DateValue) Equals(other Value) bool {
+	return false
+}
+
+//=============================================================================
+
+func (v *DateValue) LessThan(other Value) bool {
+	return false
 }
 
 //=============================================================================

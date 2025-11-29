@@ -22,37 +22,91 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package datatype
+package types
+
+import (
+	"github.com/tradalia/sick-engine/data"
+)
 
 //=============================================================================
 //===
-//=== Real
+//=== Enum
 //===
 //=============================================================================
 
-type RealType struct {
+type EnumType struct {
+	Name     string
+	IsInt    bool
+	Items    []*EnumItem
+	ItemMap  map[string]*EnumItem
+	Info    *data.Info
 }
 
 //=============================================================================
 
-var realType = &RealType{}
-
-//=============================================================================
-
-func NewRealType() *RealType {
-	return realType
+func NewEnumType(name string, isInt bool, info *data.Info) *EnumType {
+	return &EnumType{
+		Name   : name,
+		IsInt  : isInt,
+		ItemMap: make(map[string]*EnumItem),
+		Info   : info,
+	}
 }
 
 //=============================================================================
 
-func (RealType) Id() int8 {
-	return idReal
+func (e *EnumType) AddItem(i *EnumItem) bool {
+	if _,ok := e.ItemMap[i.Name]; ok {
+		return false
+	}
+
+	e.Items = append(e.Items, i)
+	e.ItemMap[i.Name] = i
+	return true
 }
 
 //=============================================================================
 
-func (RealType) String() string {
-	return "real"
+func (e *EnumType) Size() int {
+	return len(e.Items)
+}
+
+//=============================================================================
+
+func (e *EnumType) AssignCodes() {
+	for i, item := range e.Items {
+		item.Code = i+1
+	}
+}
+
+//=============================================================================
+
+func (e *EnumType) Id() int8 {
+	return idEnum
+}
+
+//=============================================================================
+
+func (e *EnumType) String() string {
+	return e.Name
+}
+
+//=============================================================================
+//===
+//=== EnumItem
+//===
+//=============================================================================
+
+type EnumItem struct {
+	Name  string
+	Code  int
+	Value string
+}
+
+//=============================================================================
+
+func NewEnumItem(name string, code int, value string) *EnumItem {
+	return &EnumItem{name, code, value}
 }
 
 //=============================================================================

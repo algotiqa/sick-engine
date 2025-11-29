@@ -27,7 +27,8 @@ package expression
 import (
 	"fmt"
 
-	"github.com/tradalia/sick-engine/datatype"
+	"github.com/tradalia/sick-engine/types"
+	"github.com/tradalia/sick-engine/values"
 )
 
 //=============================================================================
@@ -50,7 +51,7 @@ func NewAndExpression(expressions []Expression) *AndExpression {
 
 //=============================================================================
 
-func (e *AndExpression) Eval() (*ValueSet,error) {
+func (e *AndExpression) Eval() (values.Value,error) {
 	for _, cond := range e.expressions {
 		eval,err := evalAsBool(cond)
 		if err != nil {
@@ -58,16 +59,16 @@ func (e *AndExpression) Eval() (*ValueSet,error) {
 		}
 
 		if !eval {
-			return FalseValueSet,nil
+			return values.NewBoolValue(false),nil
 		}
 	}
 
-	return TrueValueSet,nil
+	return values.NewBoolValue(true),nil
 }
 
 //=============================================================================
 
-func (e *AndExpression) Type() datatype.Type {
+func (e *AndExpression) Type() types.Type {
 	return nil
 }
 
@@ -91,7 +92,7 @@ func NewOrExpression(expressions []Expression) *OrExpression {
 
 //=============================================================================
 
-func (e *OrExpression) Eval() (*ValueSet,error) {
+func (e *OrExpression) Eval() (values.Value,error) {
 	for _, cond := range e.expressions {
 		res,err := evalAsBool(cond)
 		if err != nil {
@@ -99,16 +100,16 @@ func (e *OrExpression) Eval() (*ValueSet,error) {
 		}
 
 		if res {
-			return TrueValueSet,nil
+			return values.NewBoolValue(true),nil
 		}
 	}
 
-	return FalseValueSet,nil
+	return values.NewBoolValue(false),nil
 }
 
 //=============================================================================
 
-func (e *OrExpression) Type() datatype.Type {
+func (e *OrExpression) Type() types.Type {
 	return nil
 }
 
@@ -132,18 +133,18 @@ func NewNotExpression(e Expression) *NotExpression {
 
 //=============================================================================
 
-func (e *NotExpression) Eval() (*ValueSet,error) {
+func (e *NotExpression) Eval() (values.Value,error) {
 	res,err := evalAsBool(e.expression)
 	if err != nil {
 		return nil,err
 	}
 
-	return NewValueSet(NewBoolValue(!res)),nil
+	return values.NewBoolValue(!res),nil
 }
 
 //=============================================================================
 
-func (e *NotExpression) Type() datatype.Type {
+func (e *NotExpression) Type() types.Type {
 	return e.expression.Type()
 }
 
@@ -164,14 +165,14 @@ func NewTrueExpression() *TrueExpression {
 
 //=============================================================================
 
-func (e *TrueExpression) Eval() (*ValueSet,error) {
-	return TrueValueSet,nil
+func (e *TrueExpression) Eval() (values.Value,error) {
+	return values.NewBoolValue(true),nil
 }
 
 //=============================================================================
 
-func (e *TrueExpression) Type() datatype.Type {
-	return datatype.NewBoolType()
+func (e *TrueExpression) Type() types.Type {
+	return types.NewBoolType()
 }
 
 //=============================================================================
@@ -191,14 +192,14 @@ func NewFalseExpression() *FalseExpression {
 
 //=============================================================================
 
-func (e *FalseExpression) Eval() (*ValueSet,error) {
-	return FalseValueSet,nil
+func (e *FalseExpression) Eval() (values.Value,error) {
+	return values.NewBoolValue(false),nil
 }
 
 //=============================================================================
 
-func (e *FalseExpression) Type() datatype.Type {
-	return datatype.NewBoolType()
+func (e *FalseExpression) Type() types.Type {
+	return types.NewBoolType()
 }
 
 //=============================================================================
@@ -208,25 +209,20 @@ func (e *FalseExpression) Type() datatype.Type {
 //=============================================================================
 
 func evalAsBool(e Expression) (bool,error) {
-	vs,err := e.Eval()
+	v,err := e.Eval()
 	if err != nil {
 		return false,err
 	}
 
-	if vs.Size() != 1 {
-		return false,fmt.Errorf("expected 1 boolean value. Found %d", vs.Size())
+	if v.Type() != types.NewBoolType() {
+		return false,fmt.Errorf("expected a boolean value. Found %d", v.Data)
 	}
 
-	value := vs.values[0]
-	if value.Type() != datatype.NewBoolType() {
-		return false,fmt.Errorf("expected a boolean value. Found %d", value.Data)
-	}
-
-	if value.Data == nil {
+	if v.Data == nil {
 		return false,nil
 	}
 
-	return value.Data().(bool),nil
+	return v.Data().(bool),nil
 }
 
 //=============================================================================

@@ -22,37 +22,37 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package datatype
+package types
 
 //=============================================================================
 //===
-//=== Date
+//=== String
 //===
 //=============================================================================
 
-type DateType struct {
+type StringType struct {
 }
 
 //=============================================================================
 
-var dateType = &DateType{}
+var stringType = &StringType{}
 
 //=============================================================================
 
-func NewDateType() *DateType {
-	return dateType
+func NewStringType() *StringType {
+	return stringType
 }
 
 //=============================================================================
 
-func (DateType) Id() int8 {
-	return idDate
+func (StringType) Id() int8 {
+	return idString
 }
 
 //=============================================================================
 
-func (DateType) String() string {
-	return "date"
+func (StringType) String() string {
+	return "string"
 }
 
 //=============================================================================

@@ -51,7 +51,7 @@ constantsDef
     ;
 
 constantDef
-    : IDENTIFIER EQUAL expression
+    : IDENTIFIER EQUAL simplifiedExpression
     ;
 
 //=============================================================================
@@ -61,7 +61,7 @@ variablesDef
     ;
 
 variableDef
-    : IDENTIFIER EQUAL expression
+    : IDENTIFIER EQUAL simplifiedExpression
     ;
 
 //=============================================================================
@@ -137,7 +137,6 @@ mapType
 
 keyType
     : INT
-    | BOOL
     | STRING
     | TIME
     | DATE
@@ -164,11 +163,7 @@ statement
 //=============================================================================
 
 varDeclaration
-    : accessedIdentifier ( COMMA accessedIdentifier)* EQUAL expression ( COMMA expression)*
-    ;
-
-accessedIdentifier
-    : fqIdentifier accessorExpression?
+    : fqIdentifier ( COMMA fqIdentifier)* EQUAL expression ( COMMA expression)*
     ;
 
 //=============================================================================
@@ -201,68 +196,59 @@ returnStatement
 //=============================================================================
 
 expression
-    : identifierExpression
-    | expressionInParenthesis
-    | unaryExpression
-    | constantValueExpression
+    : unaryExpression
     | expression (STAR | SLASH) expression
     | expression (PLUS | MINUS) expression
     | expression ( EQUAL | NOT_EQUAL | LESS_THAN | LESS_OR_EQUAL | GREATER_THAN | GREATER_OR_EQUAL ) expression
+    | NOT expression
     | expression ( AND expression )+
     | expression ( OR  expression )+
+    | listExpression
+    | mapExpression
     ;
+
+//=============================================================================
+
+unaryExpression
+    : (MINUS|PLUS) unaryExpression
+    | identifierExpression
+    | functionCallExpression
+    | expressionInParenthesis
+    | constantValueExpression
+    ;
+
+//=============================================================================
 
 identifierExpression
-    : fqIdentifier ( accessorExpression | paramsExpression )?
-    ;
-
-accessorExpression
-    : L_BRACKET expression R_BRACKET
-    ;
-
-paramsExpression
-    : L_PAREN (expression (COMMA expression)* )? R_PAREN
+    : fqIdentifier ( accessorExpression )?
     ;
 
 fqIdentifier
     : IDENTIFIER ( DOT IDENTIFIER )*
     ;
 
-unaryExpression
-    : (MINUS|PLUS|NOT) expression
+accessorExpression
+    : L_BRACKET expression R_BRACKET
     ;
+
+//=============================================================================
+
+functionCallExpression
+    : fqIdentifier paramsExpression
+    ;
+
+paramsExpression
+    : L_PAREN (expression (COMMA expression)* )? R_PAREN
+    ;
+
+//=============================================================================
 
 expressionInParenthesis
     : L_PAREN expression R_PAREN;
 
-
 //=============================================================================
 
-constantValueExpression
-    : INT_VALUE
-    | REAL_VALUE
-    | boolValue
-    | STRING_VALUE
-    | timeValue
-    | dateValue
-    | errorValue
-    | listValue
-    | mapValue
-    ;
-
-timeValue
-    : APOS INT_VALUE COLON INT_VALUE APOS;
-
-dateValue
-    : APOS INT_VALUE MINUS INT_VALUE MINUS INT_VALUE APOS;
-
-boolValue
-    : TRUE | FALSE ;
-
-errorValue
-    : ERROR L_PAREN STRING_VALUE R_PAREN;
-
-listValue
+listExpression
     : listType initialListValues?
     ;
 
@@ -270,7 +256,9 @@ initialListValues
     : L_CURLY expression ( COMMA expression)* R_CURLY
     ;
 
-mapValue
+//=============================================================================
+
+mapExpression
     : mapType initialMapValues?
     ;
 
@@ -288,5 +276,39 @@ keyValue
     | timeValue
     | dateValue
     ;
+
+//=============================================================================
+
+simplifiedExpression
+    : (MINUS|PLUS) simplifiedExpression
+    | identifierExpression
+    | constantValueExpression
+    | simplifiedExpression (STAR | SLASH) simplifiedExpression
+    | simplifiedExpression (PLUS | MINUS) simplifiedExpression
+    ;
+
+//=============================================================================
+
+constantValueExpression
+    : INT_VALUE
+    | REAL_VALUE
+    | boolValue
+    | STRING_VALUE
+    | timeValue
+    | dateValue
+    | errorValue
+    ;
+
+timeValue
+    : APOS INT_VALUE COLON INT_VALUE APOS;
+
+dateValue
+    : APOS INT_VALUE MINUS INT_VALUE MINUS INT_VALUE APOS;
+
+boolValue
+    : TRUE | FALSE ;
+
+errorValue
+    : ERROR L_PAREN STRING_VALUE R_PAREN;
 
 //=============================================================================

@@ -25,49 +25,101 @@ THE SOFTWARE.
 package core
 
 import (
+	"io"
+
 	"github.com/antlr4-go/antlr/v4"
+	"github.com/tradalia/sick-engine/ast"
+	"github.com/tradalia/sick-engine/parser"
+	"github.com/tradalia/sick-engine/tool"
 )
 
 //=============================================================================
 //===
-//=== Error listener
+//=== Environment creation
 //===
 //=============================================================================
 
-type ParseErrorListener struct {
-	filename string
-	errors   *ParseErrors
-}
+func CreateEnvironment(path string) (*Environment,*ParseErrors) {
+	pr := NewParseErrors()
 
-//=============================================================================
-
-func NewParseErrorListener(filename string, errors *ParseErrors) *ParseErrorListener {
-	return &ParseErrorListener{
-		filename: filename,
-		errors  : errors,
+	files,err := tool.FindFiles(path, ".tsl")
+	if err != nil {
+		pe := NewParseError(path, -1, -1, err.Error())
+		pr.AddError(pe)
+		return nil,pr
 	}
+
+	e := NewEnvironment()
+
+	for _,file := range files {
+		script,errs := ParseFile(file)
+		if !errs.IsEmpty() {
+			return nil,errs
+		}
+
+		errs = e.AddScript(script)
+		if !errs.IsEmpty() {
+			return nil,errs
+		}
+	}
+
+	return e,pr
+}
+
+//=============================================================================
+//===
+//=== Parsing functions
+//===
+//=============================================================================
+
+func ParseFile(filename string) (*ast.Script, *ParseErrors) {
+	stream,err := antlr.NewFileStream(filename)
+	if err != nil {
+		pr := NewParseErrors()
+		pe := NewParseError(filename, -1, -1, err.Error())
+		pr.AddError(pe)
+		return nil,pr
+	}
+
+	return parse(stream)
 }
 
 //=============================================================================
 
-func (l *ParseErrorListener) SyntaxError(recognizer antlr.Recognizer, offendingSymbol interface{}, line, column int, msg string, e antlr.RecognitionException) {
-	pe := NewParseError(l.filename, line, column, msg)
-	l.errors.AddError(pe)
+func ParseString(input string) (*ast.Script, *ParseErrors) {
+	return parse(antlr.NewInputStream(input))
 }
 
 //=============================================================================
 
-func (l *ParseErrorListener) ReportAmbiguity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex, stopIndex int, exact bool, ambigAlts *antlr.BitSet, configs *antlr.ATNConfigSet) {
+func ParseReader(r io.Reader) (*ast.Script, *ParseErrors) {
+	return parse(antlr.NewIoStream(r))
 }
 
 //=============================================================================
 
-func (l *ParseErrorListener) ReportAttemptingFullContext(recognizer antlr.Parser, dfa *antlr.DFA, startIndex, stopIndex int, conflictingAlts *antlr.BitSet, configs *antlr.ATNConfigSet) {
-}
+func parse(input antlr.CharStream) (*ast.Script, *ParseErrors) {
+	lexer  := parser.NewTslLexer(input)
+	stream := antlr .NewCommonTokenStream(lexer,0)
+	p      := parser.NewTslParser(stream)
 
-//=============================================================================
+	res := NewParseErrors()
+	lis := NewParseErrorListener(input.GetSourceName(), res)
 
-func (l *ParseErrorListener) ReportContextSensitivity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex, stopIndex, prediction int, configs *antlr.ATNConfigSet) {
+	//--- Add error collection listener
+	p.RemoveErrorListeners()
+	p.AddErrorListener(lis)
+
+	//--- Ask the parser to report all ambiguities
+	p.GetInterpreter().SetPredictionMode(antlr.PredictionModeLLExactAmbigDetection)
+	tree := p.Script()
+	if !res.IsEmpty() {
+		return nil,res
+	}
+
+	script := ast.Build(tree)
+
+	return script,res
 }
 
 //=============================================================================

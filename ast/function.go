@@ -28,7 +28,8 @@ import (
 	"strings"
 
 	"github.com/tradalia/sick-engine/ast/statement"
-	"github.com/tradalia/sick-engine/datatype"
+	"github.com/tradalia/sick-engine/data"
+	"github.com/tradalia/sick-engine/types"
 )
 
 //=============================================================================
@@ -38,28 +39,32 @@ import (
 //=============================================================================
 
 type Function struct {
-	name     string
-	class    string
-	params   []*Param
-	returns  []datatype.Type
-	block    *statement.Block
+	Name     string
+	Class    string
+	Params   []*Param
+	Returns  []types.Type
+	Block    *statement.Block
+	Info     *data.Info
 }
 
 //=============================================================================
 
-func NewFunction(name string) *Function {
+func NewFunction(name string, info *data.Info) *Function {
 	return &Function{
-		name : name,
+		Name : name,
+		Info : info,
 	}
 }
 //=============================================================================
 
 func (f *Function) Id() string {
 	sb := strings.Builder{}
-	sb.WriteString(f.name)
+	sb.WriteString(f.Name)
+	sb.WriteString("|")
+	sb.WriteString(f.Class)
 	sb.WriteString("|")
 
-	for _,p := range f.params {
+	for _,p := range f.Params {
 		sb.WriteString("|")
 		sb.WriteString(p.Type.String())
 	}
@@ -70,13 +75,21 @@ func (f *Function) Id() string {
 //=============================================================================
 
 func (f *Function) AddParam(p *Param) {
-	f.params = append(f.params, p)
+	f.Params = append(f.Params, p)
 }
 
 //=============================================================================
 
-func (f *Function) AddReturnType(t datatype.Type) {
-	f.returns = append(f.returns, t)
+func (f *Function) AddReturnType(t types.Type) {
+	f.Returns = append(f.Returns, t)
+}
+
+//=============================================================================
+//=== Method interface
+//=============================================================================
+
+func (f *Function) GetName() string {
+	return f.Name
 }
 
 //=============================================================================
@@ -86,16 +99,18 @@ func (f *Function) AddReturnType(t datatype.Type) {
 //=============================================================================
 
 type Param struct {
-	Name  string
-	Type  datatype.Type
+	Name string
+	Type types.Type
+	Info *data.Info
 }
 
 //=============================================================================
 
-func NewParam(name string, t datatype.Type) *Param {
+func NewParam(name string, t types.Type, info *data.Info) *Param {
 	return &Param{
 		Name: name,
 		Type: t,
+		Info: info,
 	}
 }
 

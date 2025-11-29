@@ -24,48 +24,39 @@ THE SOFTWARE.
 
 package expression
 
-import "github.com/tradalia/sick-engine/datatype"
+import (
+	"github.com/tradalia/sick-engine/types"
+	"github.com/tradalia/sick-engine/values"
+)
 
 //=============================================================================
 //===
-//=== Error value
+//=== ConstantValue
 //===
 //=============================================================================
 
-type ErrorValue struct {
-	value string
+type ConstantValueExpression struct {
+	Value values.Value
 }
 
 //=============================================================================
 
-func NewErrorValue(value string) *ErrorValue {
-	return &ErrorValue{
-		value: value,
+func NewConstantValueExpression(value values.Value) *ConstantValueExpression {
+	return &ConstantValueExpression{
+		Value: value,
 	}
 }
 
 //=============================================================================
 
-func (v *ErrorValue) Data() any {
-	return v.value
+func (e *ConstantValueExpression) Eval() (values.Value,error) {
+	return e.Value,nil
 }
 
 //=============================================================================
 
-func (v *ErrorValue) Type() datatype.Type {
-	return datatype.NewErrorType()
-}
-
-//=============================================================================
-
-func (v *ErrorValue) Equals(other Value) bool {
-	return false
-}
-
-//=============================================================================
-
-func (v *ErrorValue) LessThan(other Value) bool {
-	return false
+func (e *ConstantValueExpression) Type() types.Type {
+	return e.Value.Type()
 }
 
 //=============================================================================

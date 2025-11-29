@@ -24,7 +24,10 @@ THE SOFTWARE.
 
 package expression
 
-import "github.com/tradalia/sick-engine/datatype"
+import (
+	"github.com/tradalia/sick-engine/types"
+	"github.com/tradalia/sick-engine/values"
+)
 
 //=============================================================================
 //===
@@ -54,13 +57,13 @@ func (e *FunctionCallExpression) AddExpression(ex Expression) {
 
 //=============================================================================
 
-func (e *FunctionCallExpression) Eval() (*ValueSet,error) {
+func (e *FunctionCallExpression) Eval() (values.Value,error) {
 	return nil,nil
 }
 
 //=============================================================================
 
-func (e *FunctionCallExpression) Type() datatype.Type {
+func (e *FunctionCallExpression) Type() types.Type {
 	return nil
 }
 

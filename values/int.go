@@ -22,39 +22,52 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package datatype
+package values
 
-//=============================================================================
-//===
-//=== Type IDs
-//===
-//=============================================================================
-
-const (
-	idInt        =  0
-	idReal       =  1
-	idBool       =  2
-	idString     =  3
-	idTime       =  4
-	idDate       =  5
-	idTimeseries =  6
-	idEnum       =  7
-	idClass      =  8
-	idList       =  9
-	idMap        = 10
-	idError      = 11
-	idToFindOut  = -1
+import (
+	"github.com/tradalia/sick-engine/types"
 )
 
 //=============================================================================
 //===
-//=== Type interface
+//=== Int value
 //===
 //=============================================================================
 
-type Type interface {
-	Id()     int8
-	String() string
+type IntValue struct {
+	value int64
+}
+
+//=============================================================================
+
+func NewIntValue(value int64) *IntValue {
+	return &IntValue{
+		value: value,
+	}
+}
+
+//=============================================================================
+
+func (v *IntValue) Data() any {
+	return v.value
+}
+
+//=============================================================================
+
+func (v *IntValue) Type() types.Type {
+	return types.NewIntType()
+}
+
+//=============================================================================
+
+func (v *IntValue) Equals(other Value) bool {
+	return false
+}
+
+//=============================================================================
+
+func (v *IntValue) LessThan(other Value) bool {
+	return false
 }
 
 //=============================================================================

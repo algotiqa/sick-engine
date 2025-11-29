@@ -1,6 +1,6 @@
 //=============================================================================
 /*
-Copyright © 2024 Andrea Carboni andrea.carboni71@gmail.com
+Copyright © 2025 Andrea Carboni andrea.carboni71@gmail.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,52 +22,56 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package expression
+package values
 
-import (
-	"github.com/tradalia/sick-engine/data"
-	"github.com/tradalia/sick-engine/datatype"
-)
+import "github.com/tradalia/sick-engine/types"
 
 //=============================================================================
 //===
-//=== Date value
+//=== List value
 //===
 //=============================================================================
 
-type DateValue struct {
-	value *data.Date
+type ListValue struct {
+	values []Value
+	type_  types.Type
 }
 
 //=============================================================================
 
-func NewDateValue(value *data.Date) *DateValue {
-	return &DateValue{
-		value: value,
+func NewListValue(type_ types.Type) *ListValue {
+	return &ListValue{
+		type_: type_,
 	}
 }
 
 //=============================================================================
 
-func (v *DateValue) Data() any {
-	return v.value
+func (v *ListValue) AddValue(value Value) {
+	v.values = append(v.values, value)
 }
 
 //=============================================================================
 
-func (v *DateValue) Type() datatype.Type {
-	return datatype.NewDateType()
+func (v *ListValue) Data() any {
+	return v.values
 }
 
 //=============================================================================
 
-func (v *DateValue) Equals(other Value) bool {
+func (v *ListValue) Type() types.Type {
+	return v.type_
+}
+
+//=============================================================================
+
+func (v *ListValue) Equals(other Value) bool {
 	return false
 }
 
 //=============================================================================
 
-func (v *DateValue) LessThan(other Value) bool {
+func (v *ListValue) LessThan(other Value) bool {
 	return false
 }
 

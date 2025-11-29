@@ -1,6 +1,6 @@
 //=============================================================================
 /*
-Copyright © 2025 Andrea Carboni andrea.carboni71@gmail.com
+Copyright © 2024 Andrea Carboni andrea.carboni71@gmail.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,37 +22,53 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package datatype
+package values
+
+import (
+	"github.com/tradalia/sick-engine/data"
+	"github.com/tradalia/sick-engine/types"
+)
 
 //=============================================================================
 //===
-//=== Bool
+//=== Time value
 //===
 //=============================================================================
 
-type BoolType struct {
+type TimeValue struct {
+	value *data.Time
 }
 
 //=============================================================================
 
-var boolType = &BoolType{}
-
-//=============================================================================
-
-func NewBoolType() *BoolType {
-	return boolType
+func NewTimeValue(value *data.Time) *TimeValue {
+	return &TimeValue{
+		value: value,
+	}
 }
 
 //=============================================================================
 
-func (BoolType) Id() int8 {
-	return idBool
+func (v *TimeValue) Data() any {
+	return v.value
 }
 
 //=============================================================================
 
-func (BoolType) String() string {
-	return "bool"
+func (v *TimeValue) Type() types.Type {
+	return types.NewTimeType()
+}
+
+//=============================================================================
+
+func (v *TimeValue) Equals(other Value) bool {
+	return false
+}
+
+//=============================================================================
+
+func (v *TimeValue) LessThan(other Value) bool {
+	return false
 }
 
 //=============================================================================

@@ -24,58 +24,46 @@ THE SOFTWARE.
 
 package expression
 
-import "github.com/tradalia/sick-engine/datatype"
+import (
+	"github.com/tradalia/sick-engine/types"
+	"github.com/tradalia/sick-engine/values"
+)
 
 //=============================================================================
 //===
-//=== Map value
+//=== Map expression
 //===
 //=============================================================================
 
-type MapValue struct {
-	values    map[any]Expression
-	keyType   datatype.Type
-	valueType datatype.Type
+type MapExpression struct {
+	Value  *values.MapValue
+	Values  map[values.Value]Expression
 }
 
 //=============================================================================
 
-func NewMapValue(keyType, valueType datatype.Type) *MapValue {
-	return &MapValue{
-		keyType  : keyType,
-		valueType: valueType,
-		values   : map[any]Expression{},
+func NewMapExpression(value *values.MapValue) *MapExpression {
+	return &MapExpression{
+		Value : value,
 	}
 }
 
 //=============================================================================
 
-func (v *MapValue) Set(key any, value Expression) {
-	v.values[key] = value
+func (m *MapExpression) Set(key values.Value, value Expression) {
+	m.Values[key] = value
 }
 
 //=============================================================================
 
-func (v *MapValue) Data() any {
-	return v.values
+func (m *MapExpression) Type() types.Type {
+	return m.Value.Type()
 }
 
 //=============================================================================
 
-func (v *MapValue) Type() datatype.Type {
-	return v.keyType
-}
-
-//=============================================================================
-
-func (v *MapValue) Equals(other Value) bool {
-	return false
-}
-
-//=============================================================================
-
-func (v *MapValue) LessThan(other Value) bool {
-	return false
+func (m *MapExpression) Eval() (values.Value,error) {
+	return nil,nil
 }
 
 //=============================================================================

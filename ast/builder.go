@@ -31,9 +31,10 @@ import (
 	"github.com/tradalia/sick-engine/ast/expression"
 	"github.com/tradalia/sick-engine/ast/statement"
 	"github.com/tradalia/sick-engine/data"
-	"github.com/tradalia/sick-engine/datatype"
 	"github.com/tradalia/sick-engine/parser"
 	"github.com/tradalia/sick-engine/tool"
+	"github.com/tradalia/sick-engine/types"
+	"github.com/tradalia/sick-engine/values"
 )
 
 //=============================================================================
@@ -42,6 +43,9 @@ const (
 	DefaultPackage = "main"
 )
 
+//=============================================================================
+//=== We cannot use the parser to match these as we want some flexibility, like
+//=== matching close, bar.close and any other bar.X that can emerge in the future
 //=============================================================================
 
 var ReservedIdentifiers = map[string]bool{
@@ -54,51 +58,21 @@ var ReservedIdentifiers = map[string]bool{
 }
 
 //=============================================================================
+//===
+//=== AST builder
+//===
+//=============================================================================
 
 func Build(tree parser.IScriptContext) *Script {
 	script := NewScript(tree.GetParser().GetInputStream().GetSourceName())
 
-	pack := convertPackage(tree.PackageDef())
-	script.PackageName = pack
+	script.PackageName = convertPackage(tree.PackageDef())
 
-	for _, cds := range tree.AllConstantsDef() {
-		for _,cd := range cds.AllConstantDef() {
-			c := convertConstantDef(cd)
-			if !script.AddConstant(c) {
-				raiseError(tree.GetParser(), "constant's name already used as identifier: "+ c.Name)
-			}
-		}
-	}
-
-	for _, vds := range tree.AllVariablesDef() {
-		for _,vd := range vds.AllVariableDef() {
-			v := convertVariableDef(vd)
-			if !script.AddVariable(v) {
-				raiseError(tree.GetParser(), "variable's name already used as identifier: "+ v.Name)
-			}
-		}
-	}
-
-	for _, fd := range tree.AllFunctionDef() {
-		f := convertFunctionDef(fd)
-		if !script.AddFunction(f) {
-			raiseError(tree.GetParser(), "function's name already used as identifier: "+ f.name)
-		}
-	}
-
-	for _, ed := range tree.AllEnumDef() {
-		e := convertEnumDef(ed)
-		if !script.AddEnum(e) {
-			raiseError(tree.GetParser(), "enum's name already used as identifier: "+ e.Name())
-		}
-	}
-
-	for _, cd := range tree.AllClassDef() {
-		c := convertClassDef(cd)
-		if !script.AddClass(c) {
-			raiseError(tree.GetParser(), "class's name already used as identifier: "+ c.Name())
-		}
-	}
+	convertConstants(script, tree.AllConstantsDef())
+	convertVariables(script, tree.AllVariablesDef())
+	convertFunctions(script, tree.AllFunctionDef())
+	convertEnums    (script, tree.AllEnumDef())
+	convertClasses  (script, tree.AllClassDef())
 
 	return script
 }
@@ -128,23 +102,53 @@ func convertPackage(tree parser.IPackageDefContext) string {
 }
 
 //=============================================================================
+//=== Constants
+//=============================================================================
+
+func convertConstants(script *Script, tree []parser.IConstantsDefContext) {
+	for _, cds := range tree {
+		for _,cd := range cds.AllConstantDef() {
+			c := convertConstantDef(cd)
+			if !script.AddConstant(c) {
+				raiseError(cds.GetParser(), "constant's name already used: "+ c.Name)
+			}
+		}
+	}
+}
+
+//=============================================================================
 
 func convertConstantDef(tree parser.IConstantDefContext) *Constant {
 	name  := tree.IDENTIFIER().GetText()
-	value := tree.Expression()
+	value := tree.SimplifiedExpression()
 
 	if !tool.StartsWithUpperCase(name) {
 		raiseError(tree.GetParser(), "constant's name must start with an uppercase character: "+ name)
 	}
 
-	return NewConstant(name, convertExpression(value))
+	return NewConstant(name, convertSimplifiedExpression(value), data.NewInfo(tree))
+}
+
+//=============================================================================
+//=== Variables
+//=============================================================================
+
+func convertVariables(script *Script, tree []parser.IVariablesDefContext) {
+	for _, vds := range tree {
+		for _,vd := range vds.AllVariableDef() {
+			v := convertVariableDef(vd)
+			if !script.AddVariable(v) {
+				raiseError(vd.GetParser(), "variable's name already used: "+ v.Name)
+			}
+		}
+	}
 }
 
 //=============================================================================
 
 func convertVariableDef(tree parser.IVariableDefContext) *Variable {
 	name  := tree.IDENTIFIER().GetText()
-	value := tree.Expression()
+	value := tree.SimplifiedExpression()
 
 	if _,ok := ReservedIdentifiers[name]; ok {
 		raiseError(tree.GetParser(), "variable's name is reserved: "+ name)
@@ -154,7 +158,20 @@ func convertVariableDef(tree parser.IVariableDefContext) *Variable {
 		raiseError(tree.GetParser(), "variable's name must start with a lowercase character: "+ name)
 	}
 
-	return NewVariable(name, convertExpression(value))
+	return NewVariable(name, convertSimplifiedExpression(value), data.NewInfo(tree))
+}
+
+//=============================================================================
+//=== Functions
+//=============================================================================
+
+func convertFunctions(script *Script, tree []parser.IFunctionDefContext) {
+	for _, fd := range tree {
+		f := convertFunctionDef(fd)
+		if !script.AddFunction(f) {
+			raiseError(fd.GetParser(), "function's name already used: "+ f.Name)
+		}
+	}
 }
 
 //=============================================================================
@@ -170,18 +187,18 @@ func convertFunctionDef(tree parser.IFunctionDefContext) *Function {
 		raiseError(tree.GetParser(), "function's name must start with a lowercase character: "+ name)
 	}
 
-	f := NewFunction(name)
+	f := NewFunction(name, data.NewInfo(tree))
 
 	if tree.Class() != nil {
-		f.class = tree.Class().GetText()
-		if !tool.StartsWithUpperCase(f.class) {
-			raiseError(tree.GetParser(), "function's class name must start with an uppercase character: "+ f.class)
+		f.Class = tree.Class().IDENTIFIER().GetText()
+		if !tool.StartsWithUpperCase(f.Class) {
+			raiseError(tree.GetParser(), "function's class name must start with an uppercase character: "+ f.Class)
 		}
 	}
 
 	convertFunctionParams (f, tree.Parameters())
 	convertFunctionResults(f, tree.Results())
-	f.block = convertStatementBlock(tree.Block())
+	f.Block = convertStatementBlock(tree.Block())
 
 	return f
 }
@@ -193,7 +210,7 @@ func convertFunctionParams(f *Function, params parser.IParametersContext) {
 
 	for _, pd := range params.AllParameterDecl() {
 		name  := pd.IDENTIFIER().GetText()
-		type_ := pd.Type_().GetText()
+		type_ := pd.Type_()
 
 		if _,ok := ReservedIdentifiers[name]; ok {
 			raiseError(params.GetParser(), "function's parameter is reserved: "+ name)
@@ -204,12 +221,12 @@ func convertFunctionParams(f *Function, params parser.IParametersContext) {
 		}
 
 		if _,ok := names[name]; ok {
-			raiseError(params.GetParser(), "function's parameter name is duplicated: "+ name)
+			raiseError(params.GetParser(), "function's parameter name already used: "+ name)
 		}
 
 		names[name] = true
-		t := datatype.NewToFindOutType(type_)
-		p := NewParam(name,t)
+		t := convertType(type_)
+		p := NewParam(name,t, data.NewInfo(pd))
 		f.AddParam(p)
 	}
 }
@@ -219,17 +236,30 @@ func convertFunctionParams(f *Function, params parser.IParametersContext) {
 func convertFunctionResults(f *Function, results parser.IResultsContext) {
 	if results != nil {
 		for _,r := range results.AllType_() {
-			t := datatype.NewToFindOutType(r.GetText())
+			t := convertType(r)
 			f.AddReturnType(t)
 		}
 	}
 }
 
 //=============================================================================
+//=== Enums
+//=============================================================================
 
-func convertEnumDef(tree parser.IEnumDefContext) *datatype.EnumType {
+func convertEnums(script *Script, tree []parser.IEnumDefContext) {
+	for _, ed := range tree {
+		e := convertEnumDef(ed)
+		if !script.AddEnum(e) {
+			raiseError(ed.GetParser(), "enum's name already used: "+ e.Name)
+		}
+	}
+}
+
+//=============================================================================
+
+func convertEnumDef(tree parser.IEnumDefContext) *types.EnumType {
 	name := tree.IDENTIFIER().GetText()
-	e := datatype.NewEnumType(name)
+	e := types.NewEnumType(name, true, data.NewInfo(tree))
 
 	if !tool.StartsWithUpperCase(name) {
 		raiseError(tree.GetParser(), "enum's name must start with an uppercase character: "+ name)
@@ -241,7 +271,7 @@ func convertEnumDef(tree parser.IEnumDefContext) *datatype.EnumType {
 	for _, ei := range tree.AllEnumItem() {
 		i := convertEnumItem(ei)
 		if !e.AddItem(i) {
-			raiseError(tree.GetParser(), "enum's item already used as identifier: "+ i.Name)
+			raiseError(tree.GetParser(), "enum's item already used: "+ i.Name)
 		}
 
 		if i.Code != -1 {
@@ -262,6 +292,8 @@ func convertEnumDef(tree parser.IEnumDefContext) *datatype.EnumType {
 
 	if countInts == 0 && countStr == 0 {
 		e.AssignCodes()
+	} else if countStr != 0 {
+		e.IsInt = false
 	}
 
 	return e
@@ -269,7 +301,7 @@ func convertEnumDef(tree parser.IEnumDefContext) *datatype.EnumType {
 
 //=============================================================================
 
-func convertEnumItem(tree parser.IEnumItemContext) *datatype.EnumItem {
+func convertEnumItem(tree parser.IEnumItemContext) *types.EnumItem {
 	name  := tree.IDENTIFIER().GetText()
 	code  := -1
 	value := ""
@@ -296,21 +328,36 @@ func convertEnumItem(tree parser.IEnumItemContext) *datatype.EnumItem {
 			value = text[1:len(text)-1]
 		}
 	}
-	return datatype.NewEnumItem(name, code, value)
+	return types.NewEnumItem(name, code, value)
+}
+
+//=============================================================================
+//=== Classes
+//=============================================================================
+
+func convertClasses(script *Script, tree []parser.IClassDefContext) {
+	for _, cd := range tree {
+		c := convertClassDef(cd)
+		if !script.AddClass(c) {
+			raiseError(cd.GetParser(), "class's name already used: "+ c.Name)
+		}
+	}
 }
 
 //=============================================================================
 
-func convertClassDef(tree parser.IClassDefContext) *datatype.ClassType {
+func convertClassDef(tree parser.IClassDefContext) *types.ClassType {
 	name := tree.IDENTIFIER().GetText()
-	c := datatype.NewClassType(name)
+	c := types.NewClassType(name, data.NewInfo(tree))
 
 	if !tool.StartsWithUpperCase(name) {
 		raiseError(tree.GetParser(), "class's name must start with an uppercase character: "+ name)
 	}
 
 	for _, p := range tree.AllProperty() {
-		c.AddProperty(convertProperty(p))
+		if !c.AddProperty(convertProperty(p)) {
+			raiseError(p.GetParser(), "class's property already used: "+ c.Name)
+		}
 	}
 
 	return c
@@ -318,9 +365,9 @@ func convertClassDef(tree parser.IClassDefContext) *datatype.ClassType {
 
 //=============================================================================
 
-func convertProperty(tree parser.IPropertyContext) *datatype.Property {
+func convertProperty(tree parser.IPropertyContext) *types.Property {
 	name  := tree.IDENTIFIER().GetText()
-	type_ := tree.Type_().GetText()
+	type_ := tree.Type_()
 
 	if _,ok := ReservedIdentifiers[name]; ok {
 		raiseError(tree.GetParser(), "class's property is reserved: "+ name)
@@ -330,9 +377,9 @@ func convertProperty(tree parser.IPropertyContext) *datatype.Property {
 		raiseError(tree.GetParser(), "class's property must start with a lowercase character: "+ name)
 	}
 
-	t := datatype.NewToFindOutType(type_)
+	t := convertType(type_)
 
-	return datatype.NewProperty(name,t)
+	return types.NewProperty(name,t, data.NewInfo(tree))
 }
 
 //=============================================================================
@@ -369,17 +416,15 @@ func convertStatementBlock(tree parser.IBlockContext) *statement.Block {
 //=============================================================================
 
 func convertVarDeclaration(tree parser.IVarDeclarationContext) *statement.VarDeclaration {
-
 	vd := statement.NewVarDeclaration()
 
-	for _, accId := range tree.AllAccessedIdentifier() {
-		name := convertFQIdentifier(accId.FqIdentifier())
+	for _, fqId := range tree.AllFqIdentifier() {
+		name := convertFQIdentifier(fqId)
+		if ! tool.IsLowerCase(name) {
+			raiseError(tree.GetParser(), "Fully qualified identifier must be in lowercase: "+ name.String())
+		}
 
 		var acc expression.Expression
-
-		if accId.AccessorExpression() != nil {
-			acc = convertExpression(accId.AccessorExpression().Expression())
-		}
 
 		vd.AddIdentifier(expression.NewIdentifierExpression(name, acc))
 	}
@@ -434,6 +479,10 @@ func convertReturnStatement(tree parser.IReturnStatementContext) *statement.Retu
 
 func convertFunctionCallStatement(tree parser.IFunctionCallContext) *statement.FunctionCallStatement {
 	fqid := convertFQIdentifier(tree.FqIdentifier())
+	if ! tool.IsLowerCase(fqid) {
+		raiseError(tree.GetParser(), "Fully qualified function call must be in lowercase: "+ fqid.String())
+	}
+
 	s := statement.NewFunctionCallStatement(fqid)
 
 	for _,e := range tree.ParamsExpression().AllExpression() {
@@ -478,19 +527,16 @@ func convertExpression(tree parser.IExpressionContext) expression.Expression {
 
 	//--- Lastly, other possibilities
 
-	identExpr := tree.IdentifierExpression()
-	exprParen := tree.ExpressionInParenthesis()
 	unaryExpr := tree.UnaryExpression()
-	constValue:= tree.ConstantValueExpression()
+	listExpr  := tree.ListExpression()
+	mapExpr   := tree.MapExpression()
 
-	if identExpr != nil {
-		return convertIdentifierExpression(identExpr)
-	} else if exprParen != nil {
-		return convertExpression(exprParen.Expression())
-	} else if unaryExpr != nil {
+	if unaryExpr != nil {
 		return convertUnaryExpression(unaryExpr)
-	} else if constValue != nil {
-		return convertConstantValueExpression(constValue)
+	} else if listExpr != nil {
+		return convertListExpression(listExpr)
+	} else if mapExpr != nil {
+		return convertMapExpression(mapExpr)
 	} else {
 		panic("Unknown expression type : " + tree.GetText())
 	}
@@ -560,6 +606,11 @@ func convertBooleanExpression(tree parser.IExpressionContext) expression.Express
 		return expression.NewOrExpression(expr)
 	}
 
+	if tree.NOT() != nil {
+		expr := convertExpression(tree.Expression(0))
+		return expression.NewNotExpression(expr)
+	}
+
 	return nil
 }
 
@@ -577,15 +628,74 @@ func buildExpressionList(list []parser.IExpressionContext) []expression.Expressi
 
 //=============================================================================
 
+func convertUnaryExpression(tree parser.IUnaryExpressionContext) expression.Expression {
+	identExpr := tree.IdentifierExpression()
+	exprParen := tree.ExpressionInParenthesis()
+	constValue:= tree.ConstantValueExpression()
+	funcCall  := tree.FunctionCallExpression()
+
+	if identExpr != nil {
+		return convertIdentifierExpression(identExpr)
+	} else if exprParen != nil {
+		return convertExpression(exprParen.Expression())
+	} else if constValue != nil {
+		return convertConstantValueExpression(constValue)
+	} else if funcCall != nil {
+		return convertFunctionCallExpression(funcCall)
+	}
+
+	if tree.PLUS() != nil {
+		return convertUnaryExpression(tree.UnaryExpression())
+	}
+
+	if tree.MINUS() != nil {
+		value := values.NewIntValue(int64(-1))
+		return expression.NewMultExpression(expression.NewConstantValueExpression(value), convertUnaryExpression(tree.UnaryExpression()))
+	}
+
+	panic("Unknown unary expression type : " + tree.GetText())
+}
+
+//=============================================================================
+
+func convertListExpression(tree parser.IListExpressionContext) expression.Expression {
+	t  := convertType(tree.ListType().Type_())
+	lv := values.NewListValue(t)
+	le := expression.NewListExpression(lv)
+
+	if tree.InitialListValues() != nil {
+		for _,e := range tree.InitialListValues().AllExpression() {
+			le.AddExpression(convertExpression(e))
+		}
+	}
+
+	return le
+}
+
+//=============================================================================
+
+func convertMapExpression(tree parser.IMapExpressionContext) expression.Expression {
+	kt  := convertKeyType(tree.MapType().KeyType())
+	vt  := convertType   (tree.MapType().Type_())
+	mv  := values.NewMapValue(kt, vt)
+	mex := expression.NewMapExpression(mv)
+
+	if tree.InitialMapValues() != nil {
+		for _,me := range tree.InitialMapValues().AllKeyValueCouple() {
+			k := convertKeyValue  (me.KeyValue())
+			e := convertExpression(me.Expression())
+			mex.Set(k, e)
+		}
+	}
+
+	return mex
+}
+
+//=============================================================================
+
 func convertIdentifierExpression(tree parser.IIdentifierExpressionContext) expression.Expression {
 	name     := convertFQIdentifier(tree.FqIdentifier())
 	accessor := tree.AccessorExpression()
-	params   := tree.ParamsExpression()
-
-	if params != nil {
-		list := buildExpressionList(params.AllExpression())
-		return expression.NewFunctionCallExpression(name, list)
-	}
 
 	var acc expression.Expression
 
@@ -598,23 +708,12 @@ func convertIdentifierExpression(tree parser.IIdentifierExpressionContext) expre
 
 //=============================================================================
 
-func convertUnaryExpression(tree parser.IUnaryExpressionContext) expression.Expression {
-	e := convertExpression(tree.Expression())
+func convertFunctionCallExpression(tree parser.IFunctionCallExpressionContext) expression.Expression {
+	name   := convertFQIdentifier(tree.FqIdentifier())
+	params := tree.ParamsExpression()
+	list   := buildExpressionList(params.AllExpression())
 
-	if tree.NOT() != nil {
-		return expression.NewNotExpression(e)
-	}
-
-	if tree.PLUS() != nil {
-		return e
-	}
-
-	if tree.MINUS() != nil {
-		//TODO
-		panic("unimplemented")
-	}
-
-	panic("Unknown unary expression type : " + tree.GetText())
+	return expression.NewFunctionCallExpression(name, list)
 }
 
 //=============================================================================
@@ -626,7 +725,7 @@ func convertConstantValueExpression(tree parser.IConstantValueExpressionContext)
 
 //=============================================================================
 
-func convertConstantValue(tree parser.IConstantValueExpressionContext) expression.Value {
+func convertConstantValue(tree parser.IConstantValueExpressionContext) values.Value {
 	//--- Integers
 
 	intVal := tree.INT_VALUE()
@@ -668,7 +767,7 @@ func convertConstantValue(tree parser.IConstantValueExpressionContext) expressio
 	if boolVal != nil {
 		v := boolVal.GetText() == "true"
 
-		return expression.NewBoolValue(v)
+		return values.NewBoolValue(v)
 	}
 
 	//--- Errors
@@ -678,21 +777,7 @@ func convertConstantValue(tree parser.IConstantValueExpressionContext) expressio
 		text := errVal.STRING_VALUE().GetText()
 		text  = text[1:len(text)-1]
 
-		return expression.NewErrorValue(text)
-	}
-
-	//--- Lists
-
-	listVal := tree.ListValue()
-	if listVal != nil {
-		return convertList(listVal)
-	}
-
-	//--- Maps
-
-	mapVal := tree.MapValue()
-	if mapVal != nil {
-		return convertMap(mapVal)
+		return values.NewErrorValue(text)
 	}
 
 	//--- Unknown
@@ -703,29 +788,29 @@ func convertConstantValue(tree parser.IConstantValueExpressionContext) expressio
 
 //=============================================================================
 
-func convertConstantInt(parser antlr.Parser, val antlr.TerminalNode) expression.Value {
+func convertConstantInt(parser antlr.Parser, val antlr.TerminalNode) values.Value {
 	i,err := strconv.Atoi(val.GetText())
 	if err != nil {
 		raiseError(parser, "invalid integer value : " + val.GetText())
 	}
 
-	return expression.NewIntValue(int64(i))
+	return values.NewIntValue(int64(i))
 }
 
 //=============================================================================
 
-func convertConstantReal(parser antlr.Parser, val antlr.TerminalNode) expression.Value {
+func convertConstantReal(parser antlr.Parser, val antlr.TerminalNode) values.Value {
 	f,err := strconv.ParseFloat(val.GetText(), 64)
 	if err != nil {
 		raiseError(parser, "Invalid real value : " + val.GetText())
 	}
 
-	return expression.NewRealValue(f)
+	return values.NewRealValue(f)
 }
 
 //=============================================================================
 
-func convertConstantTime(parser antlr.Parser, val parser.ITimeValueContext) expression.Value {
+func convertConstantTime(parser antlr.Parser, val parser.ITimeValueContext) values.Value {
 	hh,_ := strconv.Atoi(val.INT_VALUE(0).GetText())
 	mm,_ := strconv.Atoi(val.INT_VALUE(1).GetText())
 
@@ -735,12 +820,12 @@ func convertConstantTime(parser antlr.Parser, val parser.ITimeValueContext) expr
 		raiseError(parser, "Invalid time value : " + val.GetText())
 	}
 
-	return expression.NewTimeValue(v)
+	return values.NewTimeValue(v)
 }
 
 //=============================================================================
 
-func convertConstantDate(parser antlr.Parser, val parser.IDateValueContext) expression.Value {
+func convertConstantDate(parser antlr.Parser, val parser.IDateValueContext) values.Value {
 	y,_ := strconv.Atoi(val.INT_VALUE(0).GetText())
 	m,_ := strconv.Atoi(val.INT_VALUE(1).GetText())
 	d,_ := strconv.Atoi(val.INT_VALUE(2).GetText())
@@ -751,54 +836,21 @@ func convertConstantDate(parser antlr.Parser, val parser.IDateValueContext) expr
 		raiseError(parser, "Invalid date value : " + val.GetText())
 	}
 
-	return expression.NewDateValue(v)
+	return values.NewDateValue(v)
 }
 
 //=============================================================================
 
-func convertConstantString(val antlr.TerminalNode) expression.Value {
+func convertConstantString(val antlr.TerminalNode) values.Value {
 	text := val.GetText()
 	text  = text[1:len(text)-1]
 
-	return expression.NewStringValue(text)
+	return values.NewStringValue(text)
 }
 
 //=============================================================================
 
-func convertList(listVal parser.IListValueContext) expression.Value {
-	t  := convertType(listVal.ListType().Type_())
-	lv := expression.NewListValue(t)
-
-	if listVal.InitialListValues() != nil {
-		for _,e := range listVal.InitialListValues().AllExpression() {
-			lv.AddExpression(convertExpression(e))
-		}
-	}
-
-	return lv
-}
-
-//=============================================================================
-
-func convertMap(mapVal parser.IMapValueContext) expression.Value {
-	kt := datatype.NewToFindOutType(mapVal.MapType().KeyType().GetText())
-	vt := convertType(mapVal.MapType().Type_())
-	mv := expression.NewMapValue(kt, vt)
-
-	if mapVal.InitialMapValues() != nil {
-		for _,me := range mapVal.InitialMapValues().AllKeyValueCouple() {
-			k := convertKeyValue  (me.KeyValue())
-			e := convertExpression(me.Expression())
-			mv.Set(k, e)
-		}
-	}
-
-	return mv
-}
-
-//=============================================================================
-
-func convertKeyValue(tree parser.IKeyValueContext) expression.Value{
+func convertKeyValue(tree parser.IKeyValueContext) values.Value{
 	//--- Integers
 
 	intVal  := tree.INT_VALUE()
@@ -828,26 +880,80 @@ func convertKeyValue(tree parser.IKeyValueContext) expression.Value{
 	}
 
 	panic("Unknown constant expression type : " + tree.GetText())
-	return nil
 }
 
 //=============================================================================
 
-func convertType(tree parser.ITypeContext) datatype.Type {
+func convertType(tree parser.ITypeContext) types.Type {
 	if tree.ListType() != nil {
 		lt := tree.ListType()
 		subType := convertType(lt.Type_())
-		return datatype.NewListType(subType)
+		return types.NewListType(subType)
 	}
 
 	if tree.MapType() != nil {
 		mt := tree.MapType()
-		keyType := datatype.NewToFindOutType(mt.KeyType().GetText())
+		keyType := convertKeyType(mt.KeyType())
 		valType := convertType(mt.Type_())
-		return datatype.NewMapType(keyType, valType)
+		return types.NewMapType(keyType, valType)
 	}
 
-	return datatype.NewToFindOutType(tree.GetText())
+	if tree.INT() != nil {
+		return types.NewIntType()
+	}
+
+	if tree.REAL() != nil {
+		return types.NewRealType()
+	}
+
+	if tree.BOOL() != nil {
+		return types.NewBoolType()
+	}
+
+	if tree.STRING() != nil {
+		return types.NewStringType()
+	}
+
+	if tree.TIME() != nil {
+		return types.NewTimeType()
+	}
+
+	if tree.DATE() != nil {
+		return types.NewDateType()
+	}
+
+	if tree.TIMESERIES() != nil {
+		return types.NewTimeseriesType()
+	}
+
+	if tree.ERROR() != nil {
+		return types.NewErrorType()
+	}
+
+	return types.NewToFindOutType(tree.GetText(), data.NewInfo(tree))
+}
+
+//=============================================================================
+
+func convertKeyType(tree parser.IKeyTypeContext) types.Type {
+	if tree.INT() != nil {
+		return types.NewIntType()
+	}
+
+	if tree.STRING() != nil {
+		return types.NewStringType()
+	}
+
+	if tree.TIME() != nil {
+		return types.NewTimeType()
+	}
+
+	if tree.DATE() != nil {
+		return types.NewDateType()
+	}
+
+	panic("Unknown key type : " + tree.GetText())
+	return nil
 }
 
 //=============================================================================
@@ -863,6 +969,61 @@ func convertFQIdentifier(tree parser.IFqIdentifierContext) *expression.FQIdentif
 	return fqi
 }
 
+//=============================================================================
+
+func convertSimplifiedExpression(tree parser.ISimplifiedExpressionContext) expression.Expression {
+	if tree.STAR() != nil {
+		return expression.NewMultExpression(
+					convertSimplifiedExpression(tree.SimplifiedExpression(0)),
+					convertSimplifiedExpression(tree.SimplifiedExpression(1)))
+	}
+
+	if tree.SLASH() != nil {
+		return expression.NewDivExpression(
+					convertSimplifiedExpression(tree.SimplifiedExpression(0)),
+					convertSimplifiedExpression(tree.SimplifiedExpression(1)))
+	}
+
+	if tree.PLUS() != nil {
+		return expression.NewAddExpression(
+					convertSimplifiedExpression(tree.SimplifiedExpression(0)),
+					convertSimplifiedExpression(tree.SimplifiedExpression(1)))
+	}
+	if tree.MINUS() != nil {
+		return expression.NewSubExpression(
+					convertSimplifiedExpression(tree.SimplifiedExpression(0)),
+					convertSimplifiedExpression(tree.SimplifiedExpression(1)))
+	}
+
+	//--- Lastly, other possibilities
+
+	identExpr := tree.IdentifierExpression()
+	constValue:= tree.ConstantValueExpression()
+
+	if identExpr != nil {
+		return convertIdentifierExpression(identExpr)
+	} else if constValue != nil {
+		return convertConstantValueExpression(constValue)
+	}
+
+	if tree.PLUS() != nil {
+		return convertSimplifiedExpression(tree.SimplifiedExpression(0))
+	}
+
+	if tree.MINUS() != nil {
+		value := values.NewIntValue(int64(-1))
+		return expression.NewMultExpression(
+					expression.NewConstantValueExpression(value),
+					convertSimplifiedExpression(tree.SimplifiedExpression(0)))
+	}
+
+	panic("Unknown simplified expression type : " + tree.GetText())
+}
+
+//=============================================================================
+//===
+//=== Other private functions
+//===
 //=============================================================================
 
 func raiseError(p antlr.Parser, message string) {

@@ -22,36 +22,37 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package datatype
+package types
 
 //=============================================================================
 //===
-//=== List
+//=== Timeseries
 //===
 //=============================================================================
 
-type ListType struct {
-	subType Type
+type TimeseriesType struct {
 }
 
 //=============================================================================
 
-func NewListType(t Type) *ListType {
-	return &ListType{
-		subType: t,
-	}
+var timeseriesType = &TimeseriesType{}
+
+//=============================================================================
+
+func NewTimeseriesType() *TimeseriesType {
+	return timeseriesType
 }
 
 //=============================================================================
 
-func (t *ListType) Id() int8 {
-	return idList
+func (TimeseriesType) Id() int8 {
+	return idTimeseries
 }
 
 //=============================================================================
 
-func (t *ListType) String() string {
-	return "list="+ t.subType.String()
+func (TimeseriesType) String() string {
+	return "timeseries"
 }
 
 //=============================================================================

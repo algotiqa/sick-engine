@@ -24,7 +24,10 @@ THE SOFTWARE.
 
 package expression
 
-import "github.com/tradalia/sick-engine/datatype"
+import (
+	"github.com/tradalia/sick-engine/types"
+	"github.com/tradalia/sick-engine/values"
+)
 
 //=============================================================================
 //===
@@ -39,13 +42,13 @@ type MultExpression struct {
 
 //=============================================================================
 
-func (e *MultExpression) Eval() (*ValueSet,error) {
+func (e *MultExpression) Eval() (values.Value,error) {
 	return nil,nil
 }
 
 //=============================================================================
 
-func (e *MultExpression) Type() datatype.Type {
+func (e *MultExpression) Type() types.Type {
 	return nil
 }
 
@@ -71,23 +74,23 @@ type DivExpression struct {
 
 //=============================================================================
 
-func (e *DivExpression) Eval() (*ValueSet,error) {
-	return nil,nil
-}
-
-//=============================================================================
-
-func (e *DivExpression) Type() datatype.Type {
-	return nil
-}
-
-//=============================================================================
-
 func NewDivExpression(left, right Expression) *DivExpression {
 	return &DivExpression{
 		left:  left,
 		right: right,
 	}
+}
+
+//=============================================================================
+
+func (e *DivExpression) Eval() (values.Value,error) {
+	return nil,nil
+}
+
+//=============================================================================
+
+func (e *DivExpression) Type() types.Type {
+	return nil
 }
 
 //=============================================================================
@@ -103,13 +106,13 @@ type AddExpression struct {
 
 //=============================================================================
 
-func (e *AddExpression) Eval() (*ValueSet,error) {
+func (e *AddExpression) Eval() (values.Value,error) {
 	return nil,nil
 }
 
 //=============================================================================
 
-func (e *AddExpression) Type() datatype.Type {
+func (e *AddExpression) Type() types.Type {
 	return nil
 }
 
@@ -135,13 +138,13 @@ type SubExpression struct {
 
 //=============================================================================
 
-func (e *SubExpression) Eval() (*ValueSet,error) {
+func (e *SubExpression) Eval() (values.Value,error) {
 	return nil,nil
 }
 
 //=============================================================================
 
-func (e *SubExpression) Type() datatype.Type {
+func (e *SubExpression) Type() types.Type {
 	return nil
 }
 

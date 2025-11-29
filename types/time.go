@@ -22,37 +22,37 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package datatype
+package types
 
 //=============================================================================
 //===
-//=== Timeseries
+//=== Time
 //===
 //=============================================================================
 
-type TimeseriesType struct {
+type TimeType struct {
 }
 
 //=============================================================================
 
-var timeseriesType = &TimeseriesType{}
+var timeType = &TimeType{}
 
 //=============================================================================
 
-func NewTimeseriesType() *TimeseriesType {
-	return timeseriesType
+func NewTimeType() *TimeType {
+	return timeType
 }
 
 //=============================================================================
 
-func (TimeseriesType) Id() int8 {
-	return idTimeseries
+func (TimeType) Id() int8 {
+	return idTime
 }
 
 //=============================================================================
 
-func (TimeseriesType) String() string {
-	return "timeseries"
+func (TimeType) String() string {
+	return "time"
 }
 
 //=============================================================================

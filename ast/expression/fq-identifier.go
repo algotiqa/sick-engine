@@ -24,7 +24,12 @@ THE SOFTWARE.
 
 package expression
 
-import "github.com/tradalia/sick-engine/datatype"
+import (
+	"strings"
+
+	"github.com/tradalia/sick-engine/types"
+	"github.com/tradalia/sick-engine/values"
+)
 
 //=============================================================================
 //===
@@ -34,18 +39,18 @@ import "github.com/tradalia/sick-engine/datatype"
 
 type IdentifierExpression struct {
 	name     *FQIdentifier
-	accessor Expression
+	accessor  Expression
 }
 
 //=============================================================================
 
-func (e *IdentifierExpression) Eval() (*ValueSet,error) {
+func (e *IdentifierExpression) Eval() (values.Value,error) {
 	return nil,nil
 }
 
 //=============================================================================
 
-func (e *IdentifierExpression) Type() datatype.Type {
+func (e *IdentifierExpression) Type() types.Type {
 	return nil
 }
 
@@ -65,7 +70,7 @@ func NewIdentifierExpression(name *FQIdentifier, accessor Expression) *Identifie
 //=============================================================================
 
 type FQIdentifier struct {
-	scopes []string
+	Scopes []string
 }
 
 //=============================================================================
@@ -77,7 +82,22 @@ func NewFQIdentifier() *FQIdentifier {
 //=============================================================================
 
 func (i *FQIdentifier) AddScope(name string) {
-	i.scopes = append(i.scopes, name)
+	i.Scopes = append(i.Scopes, name)
+}
+
+//=============================================================================
+
+func (i *FQIdentifier) String() string {
+	var sb strings.Builder
+
+	for index, name := range i.Scopes {
+		if index != 0 {
+			sb.WriteString(".")
+		}
+		sb.WriteString(name)
+	}
+
+	return sb.String()
 }
 
 //=============================================================================

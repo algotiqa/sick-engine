@@ -26,7 +26,8 @@ package ast
 
 import (
 	"github.com/tradalia/sick-engine/ast/expression"
-	"github.com/tradalia/sick-engine/datatype"
+	"github.com/tradalia/sick-engine/data"
+	"github.com/tradalia/sick-engine/types"
 )
 
 //=============================================================================
@@ -37,8 +38,8 @@ type Script struct {
 	Constants   []*Constant
 	Variables   []*Variable
 	Functions   []*Function
-	Enums       []*datatype.EnumType
-	Classes     []*datatype.ClassType
+	Enums       []*types.EnumType
+	Classes     []*types.ClassType
 
 	identifiers map[string]bool
 }
@@ -77,7 +78,7 @@ func (s *Script) AddVariable(v *Variable) bool {
 //=============================================================================
 
 func (s *Script) AddFunction(f *Function) bool {
-	if s.testAndSet(f.name) {
+	if s.testAndSet(f.Id()) {
 		return false
 	}
 
@@ -87,8 +88,8 @@ func (s *Script) AddFunction(f *Function) bool {
 
 //=============================================================================
 
-func (s *Script) AddEnum(e *datatype.EnumType) bool {
-	if s.testAndSet(e.Name()) {
+func (s *Script) AddEnum(e *types.EnumType) bool {
+	if s.testAndSet(e.Name) {
 		return false
 	}
 
@@ -98,8 +99,8 @@ func (s *Script) AddEnum(e *datatype.EnumType) bool {
 
 //=============================================================================
 
-func (s *Script) AddClass(c *datatype.ClassType) bool {
-	if s.testAndSet(c.Name()) {
+func (s *Script) AddClass(c *types.ClassType) bool {
+	if s.testAndSet(c.Name) {
 		return false
 	}
 
@@ -127,14 +128,16 @@ func (s *Script) testAndSet(name string) bool {
 type Constant struct {
 	Name  string
 	Value expression.Expression
+	Info  *data.Info
 }
 
 //=============================================================================
 
-func NewConstant(name string, e expression.Expression) *Constant {
+func NewConstant(name string, e expression.Expression, info *data.Info) *Constant {
 	return &Constant{
 		Name : name,
 		Value: e,
+		Info : info,
 	}
 }
 
@@ -147,14 +150,16 @@ func NewConstant(name string, e expression.Expression) *Constant {
 type Variable struct {
 	Name  string
 	Value expression.Expression
+	Info  *data.Info
 }
 
 //=============================================================================
 
-func NewVariable(name string, e expression.Expression) *Variable {
+func NewVariable(name string, e expression.Expression, info *data.Info) *Variable {
 	return &Variable{
 		Name : name,
 		Value: e,
+		Info : info,
 	}
 }
 

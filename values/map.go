@@ -22,49 +22,59 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package expression
+package values
 
-import "github.com/tradalia/sick-engine/datatype"
+import "github.com/tradalia/sick-engine/types"
 
 //=============================================================================
 //===
-//=== String value
+//=== Map value
 //===
 //=============================================================================
 
-type StringValue struct {
-	value string
+type MapValue struct {
+	values    map[Value]Value
+	keyType   types.Type
+	valueType types.Type
 }
 
 //=============================================================================
 
-func NewStringValue(value string) *StringValue {
-	return &StringValue{
-		value: value,
+func NewMapValue(keyType, valueType types.Type) *MapValue {
+	return &MapValue{
+		keyType  : keyType,
+		valueType: valueType,
+		values   : map[Value]Value{},
 	}
 }
 
 //=============================================================================
 
-func (v *StringValue) Data() any {
-	return v.value
+func (v *MapValue) Set(key Value, value Value) {
+	v.values[key] = value
 }
 
 //=============================================================================
 
-func (v *StringValue) Type() datatype.Type {
-	return datatype.NewStringType()
+func (v *MapValue) Data() any {
+	return v.values
 }
 
 //=============================================================================
 
-func (v *StringValue) Equals(other Value) bool {
+func (v *MapValue) Type() types.Type {
+	return v.keyType
+}
+
+//=============================================================================
+
+func (v *MapValue) Equals(other Value) bool {
 	return false
 }
 
 //=============================================================================
 
-func (v *StringValue) LessThan(other Value) bool {
+func (v *MapValue) LessThan(other Value) bool {
 	return false
 }
 

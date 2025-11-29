@@ -22,45 +22,39 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package expression
+package types
 
 //=============================================================================
 //===
-//=== Constants
+//=== Type IDs
 //===
 //=============================================================================
 
-var TrueValueSet  = NewValueSet(NewBoolValue(true))
-var FalseValueSet = NewValueSet(NewBoolValue(false))
+const (
+	idInt        =  0
+	idReal       =  1
+	idBool       =  2
+	idString     =  3
+	idTime       =  4
+	idDate       =  5
+	idTimeseries =  6
+	idEnum       =  7
+	idClass      =  8
+	idList       =  9
+	idMap        = 10
+	idError      = 11
+	idToFindOut  = -1
+)
 
 //=============================================================================
 //===
-//=== ValueSet
+//=== Type interface
 //===
 //=============================================================================
 
-type ValueSet struct {
-	values []Value
-}
-
-//=============================================================================
-
-func NewValueSet(v Value) *ValueSet {
-	vs := &ValueSet{}
-	vs.AddValue(v)
-	return vs
-}
-
-//=============================================================================
-
-func (vs *ValueSet) AddValue(value Value) {
-	vs.values = append(vs.values, value)
-}
-
-//=============================================================================
-
-func (vs *ValueSet) Size() int {
-	return len(vs.values)
+type Type interface {
+	Id()     int8
+	String() string
 }
 
 //=============================================================================

@@ -24,55 +24,46 @@ THE SOFTWARE.
 
 package expression
 
-import "github.com/tradalia/sick-engine/datatype"
+import (
+	"github.com/tradalia/sick-engine/types"
+	"github.com/tradalia/sick-engine/values"
+)
 
 //=============================================================================
 //===
-//=== List value
+//=== List expression
 //===
 //=============================================================================
 
-type ListValue struct {
-	values []Expression
-	type_  datatype.Type
+type ListExpression struct {
+	Value  *values.ListValue
+	Values  []Expression
 }
 
 //=============================================================================
 
-func NewListValue(type_ datatype.Type) *ListValue {
-	return &ListValue{
-		type_: type_,
+func NewListExpression(value *values.ListValue) *ListExpression {
+	return &ListExpression{
+		Value : value,
 	}
 }
 
 //=============================================================================
 
-func (v *ListValue) AddExpression(expression Expression) {
-	v.values = append(v.values, expression)
+func (l *ListExpression) AddExpression(e Expression) {
+	l.Values = append(l.Values, e)
 }
 
 //=============================================================================
 
-func (v *ListValue) Data() any {
-	return v.values
+func (l *ListExpression) Type() types.Type {
+	return l.Value.Type()
 }
 
 //=============================================================================
 
-func (v *ListValue) Type() datatype.Type {
-	return v.type_
-}
-
-//=============================================================================
-
-func (v *ListValue) Equals(other Value) bool {
-	return false
-}
-
-//=============================================================================
-
-func (v *ListValue) LessThan(other Value) bool {
-	return false
+func (l *ListExpression) Eval() (values.Value,error) {
+	return nil,nil
 }
 
 //=============================================================================

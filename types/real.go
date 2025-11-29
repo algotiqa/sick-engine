@@ -22,75 +22,37 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package datatype
+package types
 
 //=============================================================================
 //===
-//=== Class
+//=== Real
 //===
 //=============================================================================
 
-type ClassType struct {
-	name       string
-	properties map[string]*Property
+type RealType struct {
 }
 
 //=============================================================================
 
-func NewClassType(name string) *ClassType {
-	return &ClassType{
-		name      : name,
-		properties: map[string]*Property{},
-	}
+var realType = &RealType{}
+
+//=============================================================================
+
+func NewRealType() *RealType {
+	return realType
 }
 
 //=============================================================================
 
-func (t *ClassType) Name() string {
-	return t.name
+func (RealType) Id() int8 {
+	return idReal
 }
 
 //=============================================================================
 
-func (t *ClassType) AddProperty(p *Property) bool {
-	if _,ok := t.properties[p.Name]; ok {
-		return false
-	}
-
-	t.properties[p.Name] = p
-	return true
-}
-
-//=============================================================================
-
-func (t *ClassType) Id() int8 {
-	return idClass
-}
-
-//=============================================================================
-
-func (t *ClassType) String() string {
-	return "class="+ t.name
-}
-
-//=============================================================================
-//===
-//=== Property
-//===
-//=============================================================================
-
-type Property struct {
-	Name string
-	Type Type
-}
-
-//=============================================================================
-
-func NewProperty(name string, type_ Type) *Property {
-	return &Property{
-		Name:  name,
-		Type:  type_,
-	}
+func (RealType) String() string {
+	return "real"
 }
 
 //=============================================================================

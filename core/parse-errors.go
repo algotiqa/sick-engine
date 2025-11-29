@@ -27,6 +27,8 @@ package core
 import (
 	"fmt"
 	"strings"
+
+	"github.com/tradalia/sick-engine/data"
 )
 
 //=============================================================================
@@ -36,15 +38,13 @@ import (
 //=============================================================================
 
 type ParseErrors struct {
-	Filename string
-	Errors   []*ParseError
+	Errors []*ParseError
 }
 
 //=============================================================================
 
-func NewParseErrors(filename string) *ParseErrors {
+func NewParseErrors() *ParseErrors {
 	return &ParseErrors{
-		Filename: filename,
 	}
 }
 
@@ -65,7 +65,6 @@ func (pe *ParseErrors) IsEmpty() bool {
 func (pe *ParseErrors) String() string {
 	var sb strings.Builder
 
-	sb.WriteString(fmt.Sprintf("\nFile: %s\n", pe.Filename))
 	for _, err := range pe.Errors {
 		sb.WriteString(err.String() + "\n")
 	}
@@ -80,6 +79,7 @@ func (pe *ParseErrors) String() string {
 //=============================================================================
 
 type ParseError struct {
+	File   string
 	Line   int
 	Column int
 	Error  string
@@ -87,15 +87,21 @@ type ParseError struct {
 
 //=============================================================================
 
-func NewParseError(line int, column int, err string) *ParseError {
-	return &ParseError{ line, column, err}
+func NewParseError(file string, line int, column int, err string) *ParseError {
+	return &ParseError{file, line, column, err}
+}
+
+//=============================================================================
+
+func NewParseErrorFromInfo(info *data.Info, err string) *ParseError {
+	return &ParseError{info.Filename, info.Line, info.Column, err}
 }
 
 //=============================================================================
 
 func (pe *ParseError) String() string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("Line: %d, Col: %d, Error: %s", pe.Line, pe.Column, pe.Error))
+	sb.WriteString(fmt.Sprintf("File: %s, Line: %d, Col: %d, Error: %s", pe.File, pe.Line, pe.Column, pe.Error))
 	return sb.String()
 }
 

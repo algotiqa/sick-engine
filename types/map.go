@@ -22,64 +22,38 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package tool
-
-import (
-	"os"
-	"path/filepath"
-	"strings"
-
-	"github.com/tradalia/sick-engine/ast/expression"
-)
+package types
 
 //=============================================================================
+//===
+//=== Map
+//===
+//=============================================================================
 
-func StartsWithLowerCase(s string) bool {
-	return s[0] >= 'a' && s[0] <= 'z'
+type MapType struct {
+	KeyType   Type
+	ValueType Type
 }
 
 //=============================================================================
 
-func StartsWithUpperCase(s string) bool {
-	return s[0] >= 'A' && s[0] <= 'Z'
-}
-
-//=============================================================================
-
-func IsLowerCase(fqi *expression.FQIdentifier) bool {
-	for _, name := range fqi.Scopes {
-		if ! StartsWithLowerCase(name) {
-			return false
-		}
+func NewMapType(keyType, valueType Type) *MapType {
+	return &MapType{
+		KeyType  : keyType,
+		ValueType: valueType,
 	}
-
-	return true
 }
 
 //=============================================================================
 
-func FindFiles(path string, suffix string) ([]string, error) {
-	var list []string
+func (t *MapType) Id() int8 {
+	return idMap
+}
 
-	err := filepath.Walk(path, func(file string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
+//=============================================================================
 
-		if file == path {
-			return nil
-		}
-
-		if !info.IsDir() {
-			if strings.HasSuffix(file, suffix) {
-				list = append(list, file)
-			}
-		}
-
-		return nil
-	})
-
-	return list,err
+func (t *MapType) String() string {
+	return "map="+ t.KeyType.String() +":"+ t.ValueType.String()
 }
 
 //=============================================================================

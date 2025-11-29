@@ -22,50 +22,100 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package expression
+package types
 
-import "github.com/tradalia/sick-engine/datatype"
+import (
+	"github.com/tradalia/sick-engine/data"
+)
 
 //=============================================================================
 //===
-//=== Int value
+//=== Class
 //===
 //=============================================================================
 
-type IntValue struct {
-	value int64
+type ClassType struct {
+	Name        string
+	Properties  map[string]*Property
+	Methods     map[string]Method
+	Info       *data.Info
 }
 
 //=============================================================================
 
-func NewIntValue(value int64) *IntValue {
-	return &IntValue{
-		value: value,
+func NewClassType(name string, info *data.Info) *ClassType {
+	return &ClassType{
+		Name      : name,
+		Properties: map[string]*Property{},
+		Methods   : map[string]Method{},
+		Info      : info,
 	}
 }
 
 //=============================================================================
 
-func (v *IntValue) Data() any {
-	return v.value
+func (t *ClassType) AddProperty(p *Property) bool {
+	if _,ok := t.Properties[p.Name]; ok {
+		return false
+	}
+
+	t.Properties[p.Name] = p
+	return true
 }
 
 //=============================================================================
 
-func (v *IntValue) Type() datatype.Type {
-	return datatype.NewIntType()
+func (t *ClassType) AddMethod(m Method) bool {
+	if _,ok := t.Methods[m.GetName()]; ok {
+		return false
+	}
+
+	t.Methods[m.GetName()] = m
+	return true
 }
 
 //=============================================================================
 
-func (v *IntValue) Equals(other Value) bool {
-	return false
+func (t *ClassType) Id() int8 {
+	return idClass
 }
 
 //=============================================================================
 
-func (v *IntValue) LessThan(other Value) bool {
-	return false
+func (t *ClassType) String() string {
+	return "class="+ t.Name
+}
+
+//=============================================================================
+//===
+//=== Property
+//===
+//=============================================================================
+
+type Property struct {
+	Name  string
+	Type  Type
+	Info *data.Info
+}
+
+//=============================================================================
+
+func NewProperty(name string, type_ Type, info *data.Info) *Property {
+	return &Property{
+		Name: name,
+		Type: type_,
+		Info: info,
+	}
+}
+
+//=============================================================================
+//===
+//=== Method
+//===
+//=============================================================================
+
+type Method interface {
+	GetName() string
 }
 
 //=============================================================================

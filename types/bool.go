@@ -22,32 +22,37 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package info
-
-import (
-	"github.com/antlr4-go/antlr/v4"
-)
+package types
 
 //=============================================================================
+//===
+//=== Bool
+//===
+//=============================================================================
 
-type Info struct {
-	Filename string
-	Line     int
-	Column   int
-	Fragment string
+type BoolType struct {
 }
 
 //=============================================================================
 
-func NewInfo(tree antlr.ParserRuleContext) *Info {
-	token := tree.GetStart()
+var boolType = &BoolType{}
 
-	return &Info{
-		Filename: token.GetInputStream().GetSourceName(),
-		Line    : token.GetLine(),
-		Column  : token.GetColumn(),
-		Fragment: tree.GetText(),
-	}
+//=============================================================================
+
+func NewBoolType() *BoolType {
+	return boolType
+}
+
+//=============================================================================
+
+func (BoolType) Id() int8 {
+	return idBool
+}
+
+//=============================================================================
+
+func (BoolType) String() string {
+	return "bool"
 }
 
 //=============================================================================

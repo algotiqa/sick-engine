@@ -22,37 +22,32 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package datatype
+package data
+
+import (
+	"github.com/antlr4-go/antlr/v4"
+)
 
 //=============================================================================
-//===
-//=== Time
-//===
-//=============================================================================
 
-type TimeType struct {
+type Info struct {
+	Filename string
+	Line     int
+	Column   int
+	Fragment string
 }
 
 //=============================================================================
 
-var timeType = &TimeType{}
+func NewInfo(tree antlr.ParserRuleContext) *Info {
+	token := tree.GetStart()
 
-//=============================================================================
-
-func NewTimeType() *TimeType {
-	return timeType
-}
-
-//=============================================================================
-
-func (TimeType) Id() int8 {
-	return idTime
-}
-
-//=============================================================================
-
-func (TimeType) String() string {
-	return "time"
+	return &Info{
+		Filename: token.GetInputStream().GetSourceName(),
+		Line    : token.GetLine(),
+		Column  : token.GetColumn(),
+		Fragment: tree.GetText(),
+	}
 }
 
 //=============================================================================

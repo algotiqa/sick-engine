@@ -25,9 +25,10 @@ THE SOFTWARE.
 package core
 
 import (
+	"strings"
+
 	"github.com/tradalia/sick-engine/ast"
-	"github.com/tradalia/sick-engine/ast/expression"
-	"github.com/tradalia/sick-engine/datatype"
+	"github.com/tradalia/sick-engine/types"
 )
 
 //=============================================================================
@@ -37,8 +38,14 @@ import (
 //=============================================================================
 
 type Environment struct {
-	functions map[string]*ast.Function
-	classes   map[string]*datatype.ClassType
+	constants  map[string]*ast.Constant
+	variables  map[string]*ast.Variable
+	functions  map[string]*ast.Function
+	enums      map[string]*types.EnumType
+	classes    map[string]*types.ClassType
+
+	duplicates map[string]bool
+	classFunc  []*ast.Function
 	callStack *CallStack
 }
 
@@ -46,24 +53,28 @@ type Environment struct {
 
 func NewEnvironment() *Environment {
 	return &Environment{
-		functions: make(map[string]*ast.Function),
-		classes  : make(map[string]*datatype.ClassType),
-		callStack: NewCallStack(),
+		constants  : make(map[string]*ast.Constant),
+		variables  : make(map[string]*ast.Variable),
+		functions  : make(map[string]*ast.Function),
+		enums      : make(map[string]*types.EnumType),
+		classes    : make(map[string]*types.ClassType),
+		duplicates : make(map[string]bool),
+		callStack  : NewCallStack(),
 	}
 }
 
 //=============================================================================
 
 func (e *Environment) AddScript(s *ast.Script) *ParseErrors {
-	pes := NewParseErrors(s.Filename)
+	pes := NewParseErrors()
 
 	for _,c := range s.Constants {
 		e.addConstant(s.PackageName, c, pes)
 	}
 
-//	for _,v := range s.Variables {
-//		e.addVariable(s.PackageName, v, pes)
-//	}
+	for _,v := range s.Variables {
+		e.addVariable(s.PackageName, v, pes)
+	}
 
 	for _,f := range s.Functions {
 		e.addFunction(s.PackageName, f, pes)
@@ -82,48 +93,212 @@ func (e *Environment) AddScript(s *ast.Script) *ParseErrors {
 
 //=============================================================================
 
-func (e *Environment) addConstant(pac string, c *ast.Constant, pes *ParseErrors) {
+func (e *Environment) Build() *ParseError {
+	err := e.resolveTypes()
+	if err == nil {
+		err = e.assignMethodsToClasses()
+	}
 
-	//fqn := pac + "." + c.Name
+	return err
+}
 
-	//if _, ok := e.constants[fqn]; ok {
-	//	pe := NewParseError(-1, -1, "constant name already exists: " + fqn)
-	//	pes.AddError(pe)
-	//	return
-	//}
+//=============================================================================
+//===
+//=== Private functions
+//===
+//=============================================================================
 
-	//pe := checkValueValidity(c.Value)
-	//if pe != nil {
-	//	pes.AddError(pe)
-	//	return
-	//}
+func (e *Environment) addConstant(pack string, c *ast.Constant, pes *ParseErrors) {
+	fqn := pack + "." + c.Name
 
-	//e.constants[fqn] = c
+	if e.testDuplicatesAndSet(fqn) {
+		pe := NewParseErrorFromInfo(c.Info, "constant name already used: " + fqn)
+		pes.AddError(pe)
+		return
+	}
+
+	e.constants[fqn] = c
 }
 
 //=============================================================================
 
-func (e *Environment) addFunction(pac string, f *ast.Function, pes *ParseErrors) {
+func (e *Environment) addVariable(pack string, v *ast.Variable, pes *ParseErrors) {
+	fqn := pack + "." + v.Name
 
+	if e.testDuplicatesAndSet(fqn) {
+		pe := NewParseErrorFromInfo(v.Info, "variable name already used: " + fqn)
+		pes.AddError(pe)
+		return
+	}
+
+	e.variables[fqn] = v
 }
 
 //=============================================================================
 
-func (e *Environment) addEnum(pac string, en *datatype.EnumType, pes *ParseErrors) {
+func (e *Environment) addFunction(pack string, f *ast.Function, pes *ParseErrors) {
+	if f.Class != "" {
+		//--- Function belongs to a class (it's a method)
 
+		f.Class = pack +"."+ f.Class
+		e.classFunc = append(e.classFunc, f)
+	} else {
+		//--- Function is standalone
+
+		fqn := pack + "." + f.Id()
+
+		if e.testDuplicatesAndSet(fqn) {
+			pe := NewParseErrorFromInfo(f.Info, "function name already used: " + fqn)
+			pes.AddError(pe)
+			return
+		}
+
+		e.functions[fqn] = f
+	}
+
+	for _, p := range f.Params {
+		addPackageToType(p.Type, pack)
+	}
+
+	for _, r := range f.Returns {
+		addPackageToType(r, pack)
+	}
 }
 
 //=============================================================================
 
-func (e *Environment) addClass(pac string, c *datatype.ClassType, pes *ParseErrors) {
+func (e *Environment) addEnum(pack string, en *types.EnumType, pes *ParseErrors) {
+	fqn := pack + "." + en.Name
 
+	if e.testDuplicatesAndSet(fqn) {
+		pe := NewParseErrorFromInfo(en.Info, "enum name already used: " + fqn)
+		pes.AddError(pe)
+		return
+	}
+
+	e.enums[fqn] = en
 }
 
 //=============================================================================
 
-func checkValueValidity(v *expression.Value) *ParseError {
+func (e *Environment) addClass(pack string, c *types.ClassType, pes *ParseErrors) {
+	fqn := pack + "." + c.Name
+
+	if e.testDuplicatesAndSet(fqn) {
+		pe := NewParseErrorFromInfo(c.Info, "class name already used: " + fqn)
+		pes.AddError(pe)
+		return
+	}
+
+	e.classes[fqn] = c
+
+	for _, p := range c.Properties {
+		addPackageToType(p.Type, pack)
+	}
+}
+
+//=============================================================================
+
+func (e *Environment) testDuplicatesAndSet(fqName string) bool {
+	if _, ok := e.duplicates[fqName]; ok {
+		return true
+	}
+
+	e.duplicates[fqName] = true
+	return false
+}
+
+//=============================================================================
+
+func addPackageToType(t types.Type, pack string) {
+	switch t.(type) {
+		case *types.ToFindOutType:
+			at := t.(*types.ToFindOutType)
+			if !strings.Contains(at.Name, ".") {
+				at.Name = pack +"."+ at.Name
+			}
+	}
+}
+
+//=============================================================================
+
+func (e *Environment) resolveTypes() *ParseError {
+	var err *ParseError
+
+	for _, f := range e.functions {
+		for _, p := range f.Params {
+			p.Type,err = e.resolveType(p.Type)
+			if err != nil {
+				return err
+			}
+		}
+
+		for i, r := range f.Returns {
+			r, err = e.resolveType(r)
+			if err != nil {
+				return err
+			}
+			f.Returns[i] = r
+		}
+	}
+
+	for _, c := range e.classes {
+		for _, p := range c.Properties {
+			p.Type,err = e.resolveType(p.Type)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
 //=============================================================================
 
+func (e *Environment) resolveType(t types.Type) (types.Type, *ParseError) {
+	switch t.(type) {
+		case *types.ToFindOutType:
+			at := t.(*types.ToFindOutType)
+			rt := e.searchType(at.Name)
+			if rt == nil {
+				return t,NewParseErrorFromInfo(at.Info, "can't resolve type: " + at.Name)
+			}
+			return rt,nil
+	}
+
+	return t,nil
+}
+
+//=============================================================================
+
+func (e *Environment) searchType(name string) types.Type {
+	if t,ok := e.enums[name]; ok {
+		return t
+	}
+
+	if t,ok := e.classes[name]; ok {
+		return t
+	}
+
+	return nil
+}
+
+//=============================================================================
+
+func (e *Environment) assignMethodsToClasses() *ParseError{
+	for _, f := range e.classFunc {
+		if c,ok := e.classes[f.Class]; ok {
+			if !c.AddMethod(f) {
+				return NewParseErrorFromInfo(f.Info, "method name already used in class: " + f.Name)
+			}
+		} else {
+			return NewParseErrorFromInfo(f.Info, "can't resolve class for function: " + f.Class)
+		}
+	}
+
+	e.classFunc = nil
+	return nil
+}
+
+//=============================================================================

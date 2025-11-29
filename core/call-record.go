@@ -24,7 +24,9 @@ THE SOFTWARE.
 
 package core
 
-import "github.com/tradalia/sick-engine/ast/expression"
+import (
+	"github.com/tradalia/sick-engine/values"
+)
 
 //=============================================================================
 //===
@@ -33,14 +35,14 @@ import "github.com/tradalia/sick-engine/ast/expression"
 //=============================================================================
 
 type CallRecord struct {
-	vars map[string]expression.Value
+	vars map[string]values.Value
 }
 
 //=============================================================================
 
 func NewCallRecord() *CallRecord {
 	return &CallRecord{
-		vars: make(map[string]expression.Value),
+		vars: make(map[string]values.Value),
 	}
 }
 
@@ -52,7 +54,7 @@ func (cr *CallRecord) ExistsVariable(name string) bool {
 
 //=============================================================================
 
-func (cr *CallRecord) SetVariable(name, string, value expression.Value) {
+func (cr *CallRecord) SetVariable(name, string, value values.Value) {
 
 }
 
