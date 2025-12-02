@@ -33,22 +33,15 @@ import "github.com/tradalia/sick-engine/ast/expression"
 //=============================================================================
 
 type FunctionCallStatement struct {
-	FQName      *expression.FQIdentifier
-	Expressions []expression.Expression
+	Chain *expression.ChainedExpression
 }
 
 //=============================================================================
 
-func NewFunctionCallStatement(name *expression.FQIdentifier) *FunctionCallStatement {
+func NewFunctionCallStatement(chain *expression.ChainedExpression) *FunctionCallStatement {
 	return &FunctionCallStatement{
-		FQName: name,
+		Chain: chain,
 	}
-}
-
-//=============================================================================
-
-func (s *FunctionCallStatement) AddExpression(e expression.Expression) {
-	s.Expressions = append(s.Expressions, e)
 }
 
 //=============================================================================

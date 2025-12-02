@@ -152,11 +152,25 @@ func (s *BaseTslParserListener) EnterStatement(ctx *StatementContext) {}
 // ExitStatement is called when production statement is exited.
 func (s *BaseTslParserListener) ExitStatement(ctx *StatementContext) {}
 
+// EnterVarsDeclaration is called when production varsDeclaration is entered.
+func (s *BaseTslParserListener) EnterVarsDeclaration(ctx *VarsDeclarationContext) {}
+
+// ExitVarsDeclaration is called when production varsDeclaration is exited.
+func (s *BaseTslParserListener) ExitVarsDeclaration(ctx *VarsDeclarationContext) {}
+
 // EnterVarDeclaration is called when production varDeclaration is entered.
 func (s *BaseTslParserListener) EnterVarDeclaration(ctx *VarDeclarationContext) {}
 
 // ExitVarDeclaration is called when production varDeclaration is exited.
 func (s *BaseTslParserListener) ExitVarDeclaration(ctx *VarDeclarationContext) {}
+
+// EnterVarsAssignmentOrFunctionCall is called when production varsAssignmentOrFunctionCall is entered.
+func (s *BaseTslParserListener) EnterVarsAssignmentOrFunctionCall(ctx *VarsAssignmentOrFunctionCallContext) {
+}
+
+// ExitVarsAssignmentOrFunctionCall is called when production varsAssignmentOrFunctionCall is exited.
+func (s *BaseTslParserListener) ExitVarsAssignmentOrFunctionCall(ctx *VarsAssignmentOrFunctionCallContext) {
+}
 
 // EnterIfStatement is called when production ifStatement is entered.
 func (s *BaseTslParserListener) EnterIfStatement(ctx *IfStatementContext) {}
@@ -176,12 +190,6 @@ func (s *BaseTslParserListener) EnterElseBlock(ctx *ElseBlockContext) {}
 // ExitElseBlock is called when production elseBlock is exited.
 func (s *BaseTslParserListener) ExitElseBlock(ctx *ElseBlockContext) {}
 
-// EnterFunctionCall is called when production functionCall is entered.
-func (s *BaseTslParserListener) EnterFunctionCall(ctx *FunctionCallContext) {}
-
-// ExitFunctionCall is called when production functionCall is exited.
-func (s *BaseTslParserListener) ExitFunctionCall(ctx *FunctionCallContext) {}
-
 // EnterReturnStatement is called when production returnStatement is entered.
 func (s *BaseTslParserListener) EnterReturnStatement(ctx *ReturnStatementContext) {}
 
@@ -200,29 +208,23 @@ func (s *BaseTslParserListener) EnterUnaryExpression(ctx *UnaryExpressionContext
 // ExitUnaryExpression is called when production unaryExpression is exited.
 func (s *BaseTslParserListener) ExitUnaryExpression(ctx *UnaryExpressionContext) {}
 
-// EnterIdentifierExpression is called when production identifierExpression is entered.
-func (s *BaseTslParserListener) EnterIdentifierExpression(ctx *IdentifierExpressionContext) {}
+// EnterExpressionInParenthesis is called when production expressionInParenthesis is entered.
+func (s *BaseTslParserListener) EnterExpressionInParenthesis(ctx *ExpressionInParenthesisContext) {}
 
-// ExitIdentifierExpression is called when production identifierExpression is exited.
-func (s *BaseTslParserListener) ExitIdentifierExpression(ctx *IdentifierExpressionContext) {}
+// ExitExpressionInParenthesis is called when production expressionInParenthesis is exited.
+func (s *BaseTslParserListener) ExitExpressionInParenthesis(ctx *ExpressionInParenthesisContext) {}
 
-// EnterFqIdentifier is called when production fqIdentifier is entered.
-func (s *BaseTslParserListener) EnterFqIdentifier(ctx *FqIdentifierContext) {}
+// EnterChainedExpression is called when production chainedExpression is entered.
+func (s *BaseTslParserListener) EnterChainedExpression(ctx *ChainedExpressionContext) {}
 
-// ExitFqIdentifier is called when production fqIdentifier is exited.
-func (s *BaseTslParserListener) ExitFqIdentifier(ctx *FqIdentifierContext) {}
+// ExitChainedExpression is called when production chainedExpression is exited.
+func (s *BaseTslParserListener) ExitChainedExpression(ctx *ChainedExpressionContext) {}
 
-// EnterAccessorExpression is called when production accessorExpression is entered.
-func (s *BaseTslParserListener) EnterAccessorExpression(ctx *AccessorExpressionContext) {}
+// EnterChainItem is called when production chainItem is entered.
+func (s *BaseTslParserListener) EnterChainItem(ctx *ChainItemContext) {}
 
-// ExitAccessorExpression is called when production accessorExpression is exited.
-func (s *BaseTslParserListener) ExitAccessorExpression(ctx *AccessorExpressionContext) {}
-
-// EnterFunctionCallExpression is called when production functionCallExpression is entered.
-func (s *BaseTslParserListener) EnterFunctionCallExpression(ctx *FunctionCallExpressionContext) {}
-
-// ExitFunctionCallExpression is called when production functionCallExpression is exited.
-func (s *BaseTslParserListener) ExitFunctionCallExpression(ctx *FunctionCallExpressionContext) {}
+// ExitChainItem is called when production chainItem is exited.
+func (s *BaseTslParserListener) ExitChainItem(ctx *ChainItemContext) {}
 
 // EnterParamsExpression is called when production paramsExpression is entered.
 func (s *BaseTslParserListener) EnterParamsExpression(ctx *ParamsExpressionContext) {}
@@ -230,11 +232,17 @@ func (s *BaseTslParserListener) EnterParamsExpression(ctx *ParamsExpressionConte
 // ExitParamsExpression is called when production paramsExpression is exited.
 func (s *BaseTslParserListener) ExitParamsExpression(ctx *ParamsExpressionContext) {}
 
-// EnterExpressionInParenthesis is called when production expressionInParenthesis is entered.
-func (s *BaseTslParserListener) EnterExpressionInParenthesis(ctx *ExpressionInParenthesisContext) {}
+// EnterAccessorExpression is called when production accessorExpression is entered.
+func (s *BaseTslParserListener) EnterAccessorExpression(ctx *AccessorExpressionContext) {}
 
-// ExitExpressionInParenthesis is called when production expressionInParenthesis is exited.
-func (s *BaseTslParserListener) ExitExpressionInParenthesis(ctx *ExpressionInParenthesisContext) {}
+// ExitAccessorExpression is called when production accessorExpression is exited.
+func (s *BaseTslParserListener) ExitAccessorExpression(ctx *AccessorExpressionContext) {}
+
+// EnterBarExpression is called when production barExpression is entered.
+func (s *BaseTslParserListener) EnterBarExpression(ctx *BarExpressionContext) {}
+
+// ExitBarExpression is called when production barExpression is exited.
+func (s *BaseTslParserListener) ExitBarExpression(ctx *BarExpressionContext) {}
 
 // EnterListExpression is called when production listExpression is entered.
 func (s *BaseTslParserListener) EnterListExpression(ctx *ListExpressionContext) {}
@@ -242,23 +250,11 @@ func (s *BaseTslParserListener) EnterListExpression(ctx *ListExpressionContext) 
 // ExitListExpression is called when production listExpression is exited.
 func (s *BaseTslParserListener) ExitListExpression(ctx *ListExpressionContext) {}
 
-// EnterInitialListValues is called when production initialListValues is entered.
-func (s *BaseTslParserListener) EnterInitialListValues(ctx *InitialListValuesContext) {}
-
-// ExitInitialListValues is called when production initialListValues is exited.
-func (s *BaseTslParserListener) ExitInitialListValues(ctx *InitialListValuesContext) {}
-
 // EnterMapExpression is called when production mapExpression is entered.
 func (s *BaseTslParserListener) EnterMapExpression(ctx *MapExpressionContext) {}
 
 // ExitMapExpression is called when production mapExpression is exited.
 func (s *BaseTslParserListener) ExitMapExpression(ctx *MapExpressionContext) {}
-
-// EnterInitialMapValues is called when production initialMapValues is entered.
-func (s *BaseTslParserListener) EnterInitialMapValues(ctx *InitialMapValuesContext) {}
-
-// ExitInitialMapValues is called when production initialMapValues is exited.
-func (s *BaseTslParserListener) ExitInitialMapValues(ctx *InitialMapValuesContext) {}
 
 // EnterKeyValueCouple is called when production keyValueCouple is entered.
 func (s *BaseTslParserListener) EnterKeyValueCouple(ctx *KeyValueCoupleContext) {}
@@ -271,12 +267,6 @@ func (s *BaseTslParserListener) EnterKeyValue(ctx *KeyValueContext) {}
 
 // ExitKeyValue is called when production keyValue is exited.
 func (s *BaseTslParserListener) ExitKeyValue(ctx *KeyValueContext) {}
-
-// EnterSimplifiedExpression is called when production simplifiedExpression is entered.
-func (s *BaseTslParserListener) EnterSimplifiedExpression(ctx *SimplifiedExpressionContext) {}
-
-// ExitSimplifiedExpression is called when production simplifiedExpression is exited.
-func (s *BaseTslParserListener) ExitSimplifiedExpression(ctx *SimplifiedExpressionContext) {}
 
 // EnterConstantValueExpression is called when production constantValueExpression is entered.
 func (s *BaseTslParserListener) EnterConstantValueExpression(ctx *ConstantValueExpressionContext) {}
@@ -307,3 +297,9 @@ func (s *BaseTslParserListener) EnterErrorValue(ctx *ErrorValueContext) {}
 
 // ExitErrorValue is called when production errorValue is exited.
 func (s *BaseTslParserListener) ExitErrorValue(ctx *ErrorValueContext) {}
+
+// EnterFqIdentifier is called when production fqIdentifier is entered.
+func (s *BaseTslParserListener) EnterFqIdentifier(ctx *FqIdentifierContext) {}
+
+// ExitFqIdentifier is called when production fqIdentifier is exited.
+func (s *BaseTslParserListener) ExitFqIdentifier(ctx *FqIdentifierContext) {}

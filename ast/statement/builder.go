@@ -1,0 +1,206 @@
+//=============================================================================
+/*
+Copyright © 2025 Andrea Carboni andrea.carboni71@gmail.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+//=============================================================================
+
+package statement
+
+import (
+	"strconv"
+
+	"github.com/tradalia/sick-engine/ast/expression"
+	"github.com/tradalia/sick-engine/core/types"
+	"github.com/tradalia/sick-engine/parser"
+	"github.com/tradalia/sick-engine/tool"
+)
+
+//=============================================================================
+//===
+//=== Statements
+//===
+//=============================================================================
+
+func ConvertBlock(tree parser.IBlockContext) *Block {
+	block := &Block{}
+
+	for _,stmt := range tree.AllStatement() {
+		varsDecl := stmt.VarsDeclaration()
+		varsAss := stmt.VarsAssignmentOrFunctionCall()
+		ifStmt  := stmt.IfStatement()
+		retStmt := stmt.ReturnStatement()
+
+		if varsDecl != nil {
+			for _,va := range varsDecl.AllVarDeclaration() {
+				block.Add(convertVarDeclaration(va))
+			}
+		} else if varsAss != nil {
+			for _, s := range convertVarAssignmentOrFunctionCall(varsAss) {
+				block.Add(s)
+			}
+		} else if ifStmt != nil {
+			block.Add(convertIfStatement(ifStmt))
+		} else if retStmt != nil {
+			block.Add(convertReturnStatement(retStmt))
+		} else {
+			panic("Unknown statement type : " + stmt.GetText())
+		}
+	}
+
+	return block
+}
+
+//=============================================================================
+
+func convertVarDeclaration(tree parser.IVarDeclarationContext) *VarDeclaration {
+	name := tree.IDENTIFIER().GetText()
+	if ! tool.StartsWithLowerCase(name) {
+		parser.RaiseError(tree.GetParser(), "Variables must be in lowercase: "+ name)
+	}
+
+	var type_ types.Type
+	var expr  expression.Expression
+
+	if tree.Type_() != nil {
+		type_ = types.ConvertType(tree.Type_())
+	}
+
+	if tree.Expression() != nil {
+		expr = expression.ConvertExpression(tree.Expression())
+	}
+
+	if type_ == nil && expr == nil {
+		parser.RaiseError(tree.GetParser(), "variable declaration requires either type or value: "+ name)
+	}
+
+	return NewVarDeclaration(name, type_, expr)
+}
+
+//=============================================================================
+
+func convertVarAssignmentOrFunctionCall(tree parser.IVarsAssignmentOrFunctionCallContext) []Statement {
+	var chains      []*expression.ChainedExpression
+	var expressions [] expression.Expression
+
+	//--- Collect identifiers
+
+	for _, chainExpr := range tree.AllChainedExpression() {
+		ce := expression.ConvertChainedExpression(chainExpr)
+		chains = append(chains, ce)
+	}
+
+	//--- Collect expressions
+
+	for _, e := range tree.AllExpression() {
+		expr := expression.ConvertExpression(e)
+		expressions = append(expressions, expr)
+	}
+
+	//--- Case 1: No EQUAL sign
+	//--- Just a sequence of chain expressions. These must be function calls
+
+	var vas []Statement
+
+	if tree.EQUAL() == nil {
+		for _,chain := range chains {
+			va := NewFunctionCallStatement(chain)
+			vas = append(vas, va)
+		}
+
+		return vas
+	}
+
+	//--- Case 2: we can split into several simple assignments
+
+	if len(chains) == len(expressions) {
+		for i,chain := range chains {
+			va := NewVarAssignment(chain, expressions[i])
+			vas = append(vas, va)
+		}
+
+		return vas
+	}
+
+	//--- Case 3: several identifiers take the result of a function call
+
+	if len(expressions) != 1 {
+		parser.RaiseError(tree.GetParser(), "identifiers don't match expressions: chains="+
+			strconv.Itoa(len(chains)) +", expr="+
+			strconv.Itoa(len(expressions)))
+	}
+
+	expr := expressions[0]
+	switch expr.(type) {
+	case *expression.ChainedExpression:
+		fc := expr.(*expression.ChainedExpression)
+		vas = append (vas, NewFunctionCallAssignment(chains, fc))
+		return vas
+	}
+
+	//--- Case 4: same expression cloned to several identifiers
+
+	for _,chain := range chains {
+		va := NewVarAssignment(chain, expressions[0])
+		vas = append(vas, va)
+	}
+
+	return vas
+}
+
+//=============================================================================
+
+func convertIfStatement(tree parser.IIfStatementContext) *IfStatement {
+	is    := NewIfStatement()
+	cond  := expression.ConvertExpression(tree.Expression())
+	block := ConvertBlock(tree.Block())
+	is.AddConditionalBlock(NewConditionalBlock(cond, block))
+
+	for _, eib := range tree.AllElseIfBlock() {
+		cond  = expression.ConvertExpression(eib.Expression())
+		block = ConvertBlock(eib.Block())
+
+		is.AddConditionalBlock(NewConditionalBlock(cond, block))
+	}
+
+	if tree.ElseBlock() != nil {
+		cond  = nil
+		block = ConvertBlock(tree.ElseBlock().Block())
+
+		is.AddConditionalBlock(NewConditionalBlock(cond, block))
+	}
+
+	return is
+}
+
+//=============================================================================
+
+func convertReturnStatement(tree parser.IReturnStatementContext) *ReturnStatement {
+	rs := NewReturnStatement()
+
+	for _, e := range tree.AllExpression() {
+		expr := expression.ConvertExpression(e)
+		rs.AddExpression(expr)
+	}
+
+	return rs
+}
+
+//=============================================================================

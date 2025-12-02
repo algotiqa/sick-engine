@@ -29,17 +29,12 @@ import (
 	"testing"
 
 	"github.com/tradalia/sick-engine/core"
+	"github.com/tradalia/sick-engine/parser"
+	"github.com/tradalia/sick-engine/runtime"
 )
 
 //=============================================================================
 //=== Package
-//=============================================================================
-
-func TestPackageNameReserved(t *testing.T) {
-	_, pes := core.ParseString("package bar")
-	assertErrors(t, pes, "reserved")
-}
-
 //=============================================================================
 
 func TestPackageNameInLowercase(t *testing.T) {
@@ -80,21 +75,7 @@ func TestVariableNameDuplicated(t *testing.T) {
 }
 
 //=============================================================================
-
-func TestVariableNameReserved(t *testing.T) {
-	_, pes := core.ParseString("var bar = 5")
-	assertErrors(t, pes, "reserved")
-}
-
-//=============================================================================
 //=== Functions
-//=============================================================================
-
-func TestFunctionNameReserved(t *testing.T) {
-	_, pes := core.ParseString("func bar() {}")
-	assertErrors(t, pes, "reserved")
-}
-
 //=============================================================================
 
 func TestFunctionNameInLowercase(t *testing.T) {
@@ -114,13 +95,6 @@ func TestFunctionClassNameInUppercase(t *testing.T) {
 func TestFunctionNameDuplicated(t *testing.T) {
 	_, pes := core.ParseString("func a() {} func a() {}")
 	assertErrors(t, pes, "already used")
-}
-
-//=============================================================================
-
-func TestFunctionParamNameReserved(t *testing.T) {
-	_, pes := core.ParseString("func a(bar int) {}")
-	assertErrors(t, pes, "reserved")
 }
 
 //=============================================================================
@@ -216,13 +190,6 @@ func TestClassNameDuplicated(t *testing.T) {
 
 //=============================================================================
 
-func TestClassPropertyReserved(t *testing.T) {
-	_, pes := core.ParseString("class A { bar int }")
-	assertErrors(t, pes, "reserved")
-}
-
-//=============================================================================
-
 func TestClassPropertyDuplicated(t *testing.T) {
 	_, pes := core.ParseString("class A { b int b bool }")
 	assertErrors(t, pes, "already used")
@@ -247,7 +214,7 @@ func TestIdentifierNameInLowercase(t *testing.T) {
 //=============================================================================
 
 func TestConstantNameDuplicatedInFiles(t *testing.T) {
-	e := core.NewEnvironment()
+	e := runtime.NewEnvironment()
 	s, pes := core.ParseString("const A=5")
 	assertNoErrors(t,pes)
 	pes = e.AddScript(s)
@@ -262,7 +229,7 @@ func TestConstantNameDuplicatedInFiles(t *testing.T) {
 //=============================================================================
 
 func TestVariableNameDuplicatedInFiles(t *testing.T) {
-	e := core.NewEnvironment()
+	e := runtime.NewEnvironment()
 	s, pes := core.ParseString("var a=5")
 	assertNoErrors(t,pes)
 	pes = e.AddScript(s)
@@ -277,7 +244,7 @@ func TestVariableNameDuplicatedInFiles(t *testing.T) {
 //=============================================================================
 
 func TestFunctionNameDuplicatedInFiles(t *testing.T) {
-	e := core.NewEnvironment()
+	e := runtime.NewEnvironment()
 	s, pes := core.ParseString("func a() {}")
 	assertNoErrors(t,pes)
 	pes = e.AddScript(s)
@@ -292,7 +259,7 @@ func TestFunctionNameDuplicatedInFiles(t *testing.T) {
 //=============================================================================
 
 func TestFunctionNameWithDifferentParameters(t *testing.T) {
-	e := core.NewEnvironment()
+	e := runtime.NewEnvironment()
 	s, pes := core.ParseString("func a() {}")
 	assertNoErrors(t,pes)
 	pes = e.AddScript(s)
@@ -307,7 +274,7 @@ func TestFunctionNameWithDifferentParameters(t *testing.T) {
 //=============================================================================
 
 func TestFunctionNameWithDifferentScopes(t *testing.T) {
-	e := core.NewEnvironment()
+	e := runtime.NewEnvironment()
 	s, pes := core.ParseString("func a() {}")
 	assertNoErrors(t,pes)
 	pes = e.AddScript(s)
@@ -322,7 +289,7 @@ func TestFunctionNameWithDifferentScopes(t *testing.T) {
 //=============================================================================
 
 func TestEnumNameDuplicatedInFiles(t *testing.T) {
-	e := core.NewEnvironment()
+	e := runtime.NewEnvironment()
 	s, pes := core.ParseString("enum A { A }")
 	assertNoErrors(t,pes)
 	pes = e.AddScript(s)
@@ -337,7 +304,7 @@ func TestEnumNameDuplicatedInFiles(t *testing.T) {
 //=============================================================================
 
 func TestClassNameDuplicatedInFiles(t *testing.T) {
-	e := core.NewEnvironment()
+	e := runtime.NewEnvironment()
 	s, pes := core.ParseString("class A {}")
 	assertNoErrors(t,pes)
 	pes = e.AddScript(s)
@@ -352,7 +319,7 @@ func TestClassNameDuplicatedInFiles(t *testing.T) {
 //=============================================================================
 
 func TestResolveEnumTypeNotExisting(t *testing.T) {
-	e := core.NewEnvironment()
+	e := runtime.NewEnvironment()
 	s, pes := core.ParseString("class A { a Color }")
 	assertNoErrors(t,pes)
 	pes = e.AddScript(s)
@@ -370,7 +337,7 @@ func TestResolveEnumTypeNotExisting(t *testing.T) {
 //=============================================================================
 
 func TestResolveEnumTypeExisting(t *testing.T) {
-	e := core.NewEnvironment()
+	e := runtime.NewEnvironment()
 	s, pes := core.ParseString("class A { a Color }")
 	assertNoErrors(t,pes)
 	pes = e.AddScript(s)
@@ -388,7 +355,7 @@ func TestResolveEnumTypeExisting(t *testing.T) {
 //=============================================================================
 
 func TestResolveClassTypeNotExisting(t *testing.T) {
-	e := core.NewEnvironment()
+	e := runtime.NewEnvironment()
 	s, pes := core.ParseString("func a(p Color) {}")
 	assertNoErrors(t,pes)
 	pes = e.AddScript(s)
@@ -406,7 +373,7 @@ func TestResolveClassTypeNotExisting(t *testing.T) {
 //=============================================================================
 
 func TestResolveClassTypeExisting(t *testing.T) {
-	e := core.NewEnvironment()
+	e := runtime.NewEnvironment()
 	s, pes := core.ParseString("func a(p Color) {}")
 	assertNoErrors(t,pes)
 	pes = e.AddScript(s)
@@ -427,7 +394,7 @@ func TestResolveClassTypeExisting(t *testing.T) {
 //===
 //=============================================================================
 
-func assertError(t *testing.T, err *core.ParseError, expected string) {
+func assertError(t *testing.T, err *parser.ParseError, expected string) {
 	if err == nil {
 		t.Errorf("No error returned")
 	} else if !strings.Contains(err.Error, expected) {
@@ -437,7 +404,7 @@ func assertError(t *testing.T, err *core.ParseError, expected string) {
 
 //=============================================================================
 
-func assertErrors(t *testing.T, pes *core.ParseErrors, expected string) {
+func assertErrors(t *testing.T, pes *parser.ParseErrors, expected string) {
 	if pes.IsEmpty() {
 		t.Errorf("No error returned")
 	} else if !strings.Contains(pes.Errors[0].Error, expected) {
@@ -447,7 +414,7 @@ func assertErrors(t *testing.T, pes *core.ParseErrors, expected string) {
 
 //=============================================================================
 
-func assertNoError(t *testing.T, err *core.ParseError) {
+func assertNoError(t *testing.T, err *parser.ParseError) {
 	if err != nil {
 		t.Errorf("Error returned. Expected none.")
 	}
@@ -455,7 +422,7 @@ func assertNoError(t *testing.T, err *core.ParseError) {
 
 //=============================================================================
 
-func assertNoErrors(t *testing.T, pes *core.ParseErrors) {
+func assertNoErrors(t *testing.T, pes *parser.ParseErrors) {
 	if !pes.IsEmpty() {
 		t.Errorf("Errors returned. Expected none.")
 	}

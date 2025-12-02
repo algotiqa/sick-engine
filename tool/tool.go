@@ -28,8 +28,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/tradalia/sick-engine/ast/expression"
 )
 
 //=============================================================================
@@ -42,18 +40,6 @@ func StartsWithLowerCase(s string) bool {
 
 func StartsWithUpperCase(s string) bool {
 	return s[0] >= 'A' && s[0] <= 'Z'
-}
-
-//=============================================================================
-
-func IsLowerCase(fqi *expression.FQIdentifier) bool {
-	for _, name := range fqi.Scopes {
-		if ! StartsWithLowerCase(name) {
-			return false
-		}
-	}
-
-	return true
 }
 
 //=============================================================================

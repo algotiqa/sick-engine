@@ -1,0 +1,461 @@
+//=============================================================================
+/*
+Copyright © 2025 Andrea Carboni andrea.carboni71@gmail.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+//=============================================================================
+
+package expression
+
+import (
+	"strconv"
+
+	"github.com/antlr4-go/antlr/v4"
+	"github.com/tradalia/sick-engine/core/data"
+	"github.com/tradalia/sick-engine/core/values"
+	"github.com/tradalia/sick-engine/parser"
+)
+
+//=============================================================================
+//===
+//=== Expressions
+//===
+//=============================================================================
+
+func ConvertExpression(tree parser.IExpressionContext) Expression {
+	if tree == nil {
+		return nil
+	}
+
+	//--- First, try with an arithmetic expression
+
+	ae := convertArithmeticExpression(tree)
+	if ae != nil {
+		return ae
+	}
+
+	//--- Then try with a relational expression
+
+	re := convertRelationalExpression(tree)
+	if re != nil {
+		return re
+	}
+
+	//--- Now, try with AND/OR
+
+	be := convertBooleanExpression(tree)
+	if be != nil {
+		return be
+	}
+
+	//--- Lastly, other possibilities
+
+	unaryExpr := tree.UnaryExpression()
+	listExpr  := tree.ListExpression()
+	mapExpr   := tree.MapExpression()
+
+	if unaryExpr != nil {
+		return convertUnaryExpression(unaryExpr)
+	} else if listExpr != nil {
+		return convertListExpression(listExpr)
+	} else if mapExpr != nil {
+		return convertMapExpression(mapExpr)
+	} else {
+		panic("Unknown expression type : " + tree.GetText())
+	}
+}
+
+//=============================================================================
+
+func convertArithmeticExpression(tree parser.IExpressionContext) Expression {
+	if tree.STAR() != nil {
+		return NewMultExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
+	}
+
+	if tree.SLASH() != nil {
+		return NewDivExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
+	}
+
+	if tree.PLUS() != nil {
+		return NewAddExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
+	}
+	if tree.MINUS() != nil {
+		return NewSubExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
+	}
+
+	return nil
+}
+
+//=============================================================================
+
+func convertRelationalExpression(tree parser.IExpressionContext) Expression {
+	if tree.EQUAL() != nil {
+		return NewEqualExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
+	}
+
+	if tree.LESS_OR_EQUAL() != nil {
+		return NewLessOrEqualExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
+	}
+
+	if tree.GREATER_OR_EQUAL() != nil {
+		return NewGreaterOrEqualExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
+	}
+
+	if tree.LESS_THAN() != nil {
+		return NewLessThanExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
+	}
+
+	if tree.GREATER_THAN() != nil {
+		return NewGreaterThanExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
+	}
+
+	if tree.NOT_EQUAL() != nil {
+		return NewNotEqualExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
+	}
+
+	return nil
+}
+
+//=============================================================================
+
+func convertBooleanExpression(tree parser.IExpressionContext) Expression {
+	if tree.AllAND() != nil {
+		expr := buildExpressionList(tree.AllExpression())
+		return NewAndExpression(expr)
+	}
+
+	if tree.AllOR() != nil {
+		expr := buildExpressionList(tree.AllExpression())
+		return NewOrExpression(expr)
+	}
+
+	if tree.NOT() != nil {
+		expr := ConvertExpression(tree.Expression(0))
+		return NewNotExpression(expr)
+	}
+
+	return nil
+}
+
+//=============================================================================
+
+func buildExpressionList(list []parser.IExpressionContext) []Expression {
+	var res []Expression
+
+	for _, expr := range list {
+		res = append(res, ConvertExpression(expr))
+	}
+
+	return res
+}
+
+//=============================================================================
+
+func convertUnaryExpression(tree parser.IUnaryExpressionContext) Expression {
+	exprParen := tree.ExpressionInParenthesis()
+	constValue:= tree.ConstantValueExpression()
+	chainExpr := tree.ChainedExpression()
+	barExpr   := tree.BarExpression()
+
+	if exprParen != nil {
+		return ConvertExpression(exprParen.Expression())
+	} else if constValue != nil {
+		return convertConstantValueExpression(constValue)
+	} else if chainExpr != nil {
+		return ConvertChainedExpression(chainExpr)
+	} else if barExpr != nil {
+		return convertBarAccessExpression(barExpr)
+	}
+
+	if tree.PLUS() != nil {
+		return convertUnaryExpression(tree.UnaryExpression())
+	}
+
+	if tree.MINUS() != nil {
+		value := values.NewIntValue(int64(-1))
+		return NewMultExpression(NewConstantValueExpression(value), convertUnaryExpression(tree.UnaryExpression()))
+	}
+
+	panic("Unknown unary expression type : " + tree.GetText())
+}
+
+//=============================================================================
+
+func convertBarAccessExpression(tree parser.IBarExpressionContext) Expression {
+	var acc Expression
+
+	accessor := tree.AccessorExpression()
+	if accessor != nil {
+		acc = ConvertExpression(accessor.Expression())
+	}
+
+	bar := 0
+
+	if tree.OPEN() != nil {
+		bar = BarOpen
+	} else if tree.HIGH() != nil {
+		bar = BarHigh
+	} else if tree.LOW() != nil {
+		bar = BarLow
+	} else if tree.CLOSE() != nil {
+		bar = BarClose
+	} else {
+		panic("Unknown bar expression type : " + tree.GetText())
+	}
+
+	return NewBarAccessExpression(bar, acc)
+}
+
+//=============================================================================
+
+func ConvertChainedExpression(tree parser.IChainedExpressionContext) *ChainedExpression {
+	ce := NewChainedExpression(tree.THIS() != nil)
+
+	for _,item := range tree.AllChainItem() {
+		ci := convertChainItem(item)
+		ce.AddItem(ci)
+	}
+
+	return ce
+}
+
+//=============================================================================
+
+func convertChainItem(tree parser.IChainItemContext) *ChainItem {
+	name   := tree.IDENTIFIER().GetText()
+	params := tree.ParamsExpression()
+	acc    := tree.AccessorExpression()
+
+	var accessor Expression
+	if acc != nil {
+		accessor = ConvertExpression(acc.Expression())
+	}
+
+	if params != nil {
+		parser.RaiseError(tree.GetParser(), "accessor after function call is not supported : "+ name)
+		return NewChainItem(CITypeFunctionCall, name, nil, buildExpressionList(params.AllExpression()))
+	}
+
+	return NewChainItem(CITypeIdentifier, name, accessor, nil)
+}
+
+//=============================================================================
+
+func convertListExpression(tree parser.IListExpressionContext) Expression {
+	le := NewListExpression()
+
+	for _,e := range tree.AllExpression() {
+		le.AddExpression(ConvertExpression(e))
+	}
+
+	return le
+}
+
+//=============================================================================
+
+func convertMapExpression(tree parser.IMapExpressionContext) Expression {
+	mex := NewMapExpression()
+
+	for _,me := range tree.AllKeyValueCouple() {
+		k := convertKeyValue  (me.KeyValue())
+		e := ConvertExpression(me.Expression())
+		mex.Set(k, e)
+	}
+
+	return mex
+}
+
+//=============================================================================
+
+func convertKeyValue(tree parser.IKeyValueContext) values.Value{
+	//--- Integers
+
+	intVal  := tree.INT_VALUE()
+	if intVal != nil {
+		return convertConstantInt(tree.GetParser(), intVal)
+	}
+
+	//--- Time objects
+
+	timeVal := tree.TimeValue()
+	if timeVal != nil {
+		return convertConstantTime(tree.GetParser(), timeVal)
+	}
+
+	//--- Date objects
+
+	dateVal := tree.DateValue()
+	if dateVal != nil {
+		return convertConstantDate(tree.GetParser(), dateVal)
+	}
+
+	//--- Strings
+
+	strVal  := tree.STRING_VALUE()
+	if strVal != nil {
+		return convertConstantString(strVal)
+	}
+
+	panic("Unknown constant expression type : " + tree.GetText())
+}
+
+//=============================================================================
+//===
+//=== Constant values
+//===
+//=============================================================================
+
+func convertConstantValueExpression(tree parser.IConstantValueExpressionContext) Expression {
+	value := convertConstantValue(tree)
+	return NewConstantValueExpression(value)
+}
+
+//=============================================================================
+
+func convertConstantValue(tree parser.IConstantValueExpressionContext) values.Value {
+	//--- Integers
+
+	intVal := tree.INT_VALUE()
+	if intVal != nil {
+		return convertConstantInt(tree.GetParser(), intVal)
+	}
+
+	//--- Reals
+
+	realVal := tree.REAL_VALUE()
+	if realVal != nil {
+		return convertConstantReal(tree.GetParser(), realVal)
+	}
+
+	//--- Time objects
+
+	timeVal := tree.TimeValue()
+	if timeVal != nil {
+		return convertConstantTime(tree.GetParser(), timeVal)
+	}
+
+	//--- Date objects
+
+	dateVal := tree.DateValue()
+	if dateVal != nil {
+		return convertConstantDate(tree.GetParser(), dateVal)
+	}
+
+	//--- Strings
+
+	strVal  := tree.STRING_VALUE()
+	if strVal != nil {
+		return convertConstantString(strVal)
+	}
+
+	//--- Booleans
+
+	boolVal := tree.BoolValue()
+	if boolVal != nil {
+		v := boolVal.GetText() == "true"
+
+		return values.NewBoolValue(v)
+	}
+
+	//--- Errors
+
+	errVal := tree.ErrorValue()
+	if errVal != nil {
+		return convertConstantError(errVal.STRING_VALUE())
+	}
+
+	//--- Unknown
+
+	panic("Unknown constant expression type : " + tree.GetText())
+	return nil
+}
+
+//=============================================================================
+
+func convertConstantInt(p antlr.Parser, val antlr.TerminalNode) values.Value {
+	i,err := strconv.Atoi(val.GetText())
+	if err != nil {
+		parser.RaiseError(p, "invalid integer value : " + val.GetText())
+	}
+
+	return values.NewIntValue(int64(i))
+}
+
+//=============================================================================
+
+func convertConstantReal(p antlr.Parser, val antlr.TerminalNode) values.Value {
+	f,err := strconv.ParseFloat(val.GetText(), 64)
+	if err != nil {
+		parser.RaiseError(p, "Invalid real value : " + val.GetText())
+	}
+
+	return values.NewRealValue(f)
+}
+
+//=============================================================================
+
+func convertConstantTime(p antlr.Parser, val parser.ITimeValueContext) values.Value {
+	hh,_ := strconv.Atoi(val.INT_VALUE(0).GetText())
+	mm,_ := strconv.Atoi(val.INT_VALUE(1).GetText())
+
+	v := data.NewTime(hh, mm)
+
+	if !v.IsValid() {
+		parser.RaiseError(p, "Invalid time value : " + val.GetText())
+	}
+
+	return values.NewTimeValue(v)
+}
+
+//=============================================================================
+
+func convertConstantDate(p antlr.Parser, val parser.IDateValueContext) values.Value {
+	y,_ := strconv.Atoi(val.INT_VALUE(0).GetText())
+	m,_ := strconv.Atoi(val.INT_VALUE(1).GetText())
+	d,_ := strconv.Atoi(val.INT_VALUE(2).GetText())
+
+	v := data.NewDate(y, m, d)
+
+	if !v.IsValid() {
+		parser.RaiseError(p, "Invalid date value : " + val.GetText())
+	}
+
+	return values.NewDateValue(v)
+}
+
+//=============================================================================
+
+func convertConstantString(val antlr.TerminalNode) values.Value {
+	text := val.GetText()
+	text  = text[1:len(text)-1]
+
+	return values.NewStringValue(text)
+}
+
+//=============================================================================
+
+func convertConstantError(val antlr.TerminalNode) values.Value {
+	text := val.GetText()
+	text  = text[1:len(text)-1]
+
+	return values.NewErrorValue(text)
+}
+
+//=============================================================================

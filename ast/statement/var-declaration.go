@@ -24,7 +24,10 @@ THE SOFTWARE.
 
 package statement
 
-import "github.com/tradalia/sick-engine/ast/expression"
+import (
+	"github.com/tradalia/sick-engine/ast/expression"
+	"github.com/tradalia/sick-engine/core/types"
+)
 
 //=============================================================================
 //===
@@ -33,26 +36,19 @@ import "github.com/tradalia/sick-engine/ast/expression"
 //=============================================================================
 
 type VarDeclaration struct {
-	Identifiers []*expression.IdentifierExpression
-	Expressions []expression.Expression
+	Name       string
+	Type       types.Type
+	Expression expression.Expression
 }
 
 //=============================================================================
 
-func NewVarDeclaration() *VarDeclaration {
-	return &VarDeclaration{}
-}
-
-//=============================================================================
-
-func (v *VarDeclaration) AddIdentifier(id *expression.IdentifierExpression) {
-	v.Identifiers = append(v.Identifiers, id)
-}
-
-//=============================================================================
-
-func (v *VarDeclaration) AddExpression(e expression.Expression) {
-	v.Expressions = append(v.Expressions, e)
+func NewVarDeclaration(name string, type_ types.Type, e expression.Expression) *VarDeclaration {
+	return &VarDeclaration{
+		Name      : name,
+		Type      : type_,
+		Expression: e,
+	}
 }
 
 //=============================================================================

@@ -1,0 +1,73 @@
+//======================================================================
+//=== Tradalia TSL
+//======================================================================
+
+package test
+
+//======================================================================
+
+const {
+	A = 1
+	B = "2"
+	E = 1.2
+}
+
+const C = true
+const D = '11:22'
+
+//======================================================================
+
+var {
+    a = 1
+}
+
+var b= "ok"
+
+//======================================================================
+
+func myFunc(param1 int, param2 string) bool {
+	a = 2 + 3 * 4
+	b = 1 + 2 + 3 * 4 /2
+	if a>b and not a = 2 * b {
+	    return b
+	}
+	return a>0
+}
+
+//======================================================================
+
+a = 5   <--- definizione var
+a = 7.7 <--- errore: a è int
+
+a = 7.7
+a = 5    <---ok, int(5) castato a real
+
+a = list of (int)
+a = { 1,2,3,4,5 }
+
+var a=1, b=2, c=3
+a,b,c = f(x)
+
+a : list of (int) = { 1, 2, 3 }
+a = { 4, 5, 6 }  <--- a già definito
+
+var a : list of (int) = { 1, 2, 3 }
+var a : list of (int)
+var m : map of (int, string) = { { 1:"a" }, { 2:"b" }}
+var a : timeseries
+var a = Color.Red
+var a : Color = Color.Red
+
+//==============================================
+
+a = true
+a = pack.Color.Red
+
+a = error("bla bla")
+timeseries
+list
+map
+class
+
+
+FQ_IDENTIFIER (accessor)* = expression

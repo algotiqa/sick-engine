@@ -28,8 +28,8 @@ import (
 	"strings"
 
 	"github.com/tradalia/sick-engine/ast/statement"
-	"github.com/tradalia/sick-engine/data"
-	"github.com/tradalia/sick-engine/types"
+	"github.com/tradalia/sick-engine/core/types"
+	"github.com/tradalia/sick-engine/parser"
 )
 
 //=============================================================================
@@ -44,12 +44,12 @@ type Function struct {
 	Params   []*Param
 	Returns  []types.Type
 	Block    *statement.Block
-	Info     *data.Info
+	Info     *parser.Info
 }
 
 //=============================================================================
 
-func NewFunction(name string, info *data.Info) *Function {
+func NewFunction(name string, info *parser.Info) *Function {
 	return &Function{
 		Name : name,
 		Info : info,
@@ -85,14 +85,6 @@ func (f *Function) AddReturnType(t types.Type) {
 }
 
 //=============================================================================
-//=== Method interface
-//=============================================================================
-
-func (f *Function) GetName() string {
-	return f.Name
-}
-
-//=============================================================================
 //===
 //=== Param
 //===
@@ -101,12 +93,12 @@ func (f *Function) GetName() string {
 type Param struct {
 	Name string
 	Type types.Type
-	Info *data.Info
+	Info *parser.Info
 }
 
 //=============================================================================
 
-func NewParam(name string, t types.Type, info *data.Info) *Param {
+func NewParam(name string, t types.Type, info *parser.Info) *Param {
 	return &Param{
 		Name: name,
 		Type: t,

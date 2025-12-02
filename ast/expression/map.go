@@ -25,8 +25,8 @@ THE SOFTWARE.
 package expression
 
 import (
-	"github.com/tradalia/sick-engine/types"
-	"github.com/tradalia/sick-engine/values"
+	"github.com/tradalia/sick-engine/core/types"
+	"github.com/tradalia/sick-engine/core/values"
 )
 
 //=============================================================================
@@ -36,15 +36,13 @@ import (
 //=============================================================================
 
 type MapExpression struct {
-	Value  *values.MapValue
-	Values  map[values.Value]Expression
+	Values map[values.Value]Expression
 }
 
 //=============================================================================
 
-func NewMapExpression(value *values.MapValue) *MapExpression {
+func NewMapExpression() *MapExpression {
 	return &MapExpression{
-		Value : value,
 	}
 }
 
@@ -57,7 +55,7 @@ func (m *MapExpression) Set(key values.Value, value Expression) {
 //=============================================================================
 
 func (m *MapExpression) Type() types.Type {
-	return m.Value.Type()
+	return nil
 }
 
 //=============================================================================

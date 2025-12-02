@@ -25,11 +25,14 @@ THE SOFTWARE.
 package ast
 
 import (
-	"github.com/tradalia/sick-engine/ast/expression"
-	"github.com/tradalia/sick-engine/data"
-	"github.com/tradalia/sick-engine/types"
+	"github.com/tradalia/sick-engine/core/types"
+	"github.com/tradalia/sick-engine/parser"
 )
 
+//=============================================================================
+//===
+//=== Script
+//===
 //=============================================================================
 
 type Script struct {
@@ -121,46 +124,35 @@ func (s *Script) testAndSet(name string) bool {
 
 //=============================================================================
 //===
-//=== Constant
+//=== FQIdentifier
 //===
 //=============================================================================
 
-type Constant struct {
-	Name  string
-	Value expression.Expression
-	Info  *data.Info
+type FQIdentifier struct {
+	Pack string
+	Name string
 }
 
 //=============================================================================
 
-func NewConstant(name string, e expression.Expression, info *data.Info) *Constant {
-	return &Constant{
-		Name : name,
-		Value: e,
-		Info : info,
+func NewFQIdentifier(tree parser.IFqIdentifierContext) *FQIdentifier {
+	if tree.DOT() == nil {
+		return &FQIdentifier{
+			Pack: "",
+			Name: tree.IDENTIFIER(0).GetText(),
+		}
+	}
+
+	return &FQIdentifier{
+		Pack: tree.IDENTIFIER(0).GetText(),
+		Name: tree.IDENTIFIER(1).GetText(),
 	}
 }
 
 //=============================================================================
-//===
-//=== Variable
-//===
-//=============================================================================
 
-type Variable struct {
-	Name  string
-	Value expression.Expression
-	Info  *data.Info
-}
-
-//=============================================================================
-
-func NewVariable(name string, e expression.Expression, info *data.Info) *Variable {
-	return &Variable{
-		Name : name,
-		Value: e,
-		Info : info,
-	}
+func (i *FQIdentifier) String() string {
+	return i.Pack +"."+ i.Name
 }
 
 //=============================================================================

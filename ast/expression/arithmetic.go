@@ -25,8 +25,8 @@ THE SOFTWARE.
 package expression
 
 import (
-	"github.com/tradalia/sick-engine/types"
-	"github.com/tradalia/sick-engine/values"
+	"github.com/tradalia/sick-engine/core/types"
+	"github.com/tradalia/sick-engine/core/values"
 )
 
 //=============================================================================

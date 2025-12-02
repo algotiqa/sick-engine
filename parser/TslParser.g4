@@ -51,7 +51,7 @@ constantsDef
     ;
 
 constantDef
-    : IDENTIFIER EQUAL simplifiedExpression
+    : IDENTIFIER EQUAL expression
     ;
 
 //=============================================================================
@@ -61,7 +61,7 @@ variablesDef
     ;
 
 variableDef
-    : IDENTIFIER EQUAL simplifiedExpression
+    : IDENTIFIER EQUAL expression
     ;
 
 //=============================================================================
@@ -71,11 +71,11 @@ functionDef
     ;
 
 class
-    : L_PAREN IDENTIFIER R_PAREN
+    : L_PAREN fqIdentifier R_PAREN
     ;
 
 parameters
-    : L_PAREN (parameterDecl (COMMA parameterDecl)* )? COMMA? R_PAREN
+    : L_PAREN (parameterDecl (COMMA parameterDecl)* )? R_PAREN
     ;
 
 parameterDecl
@@ -89,7 +89,7 @@ results
 //=============================================================================
 
 enumDef
-    : ENUM IDENTIFIER L_CURLY (enumItem)+ R_CURLY;
+    : ENUM IDENTIFIER L_CURLY (enumItem)* R_CURLY;
 
 enumItem
     : IDENTIFIER ( L_PAREN enumValue R_PAREN )?
@@ -154,16 +154,26 @@ block
 //=============================================================================
 
 statement
-    : varDeclaration
+    : varsDeclaration
+    | varsAssignmentOrFunctionCall
     | ifStatement
-    | functionCall
     | returnStatement
     ;
 
 //=============================================================================
 
+varsDeclaration
+    : VAR varDeclaration ( COMMA varDeclaration )*
+    ;
+
 varDeclaration
-    : fqIdentifier ( COMMA fqIdentifier)* EQUAL expression ( COMMA expression)*
+    : IDENTIFIER ( COLON type )? (EQUAL expression)?
+    ;
+
+//=============================================================================
+
+varsAssignmentOrFunctionCall
+    : chainedExpression ( COMMA chainedExpression)* ( EQUAL expression ( COMMA expression)* )?
     ;
 
 //=============================================================================
@@ -175,12 +185,6 @@ ifStatement
 elseIfBlock : ELSE IF expression block;
 
 elseBlock : ELSE block;
-
-//=============================================================================
-
-functionCall
-    : fqIdentifier paramsExpression
-    ;
 
 //=============================================================================
 
@@ -211,34 +215,10 @@ expression
 
 unaryExpression
     : (MINUS|PLUS) unaryExpression
-    | identifierExpression
-    | functionCallExpression
     | expressionInParenthesis
+    | barExpression
     | constantValueExpression
-    ;
-
-//=============================================================================
-
-identifierExpression
-    : fqIdentifier ( accessorExpression )?
-    ;
-
-fqIdentifier
-    : IDENTIFIER ( DOT IDENTIFIER )*
-    ;
-
-accessorExpression
-    : L_BRACKET expression R_BRACKET
-    ;
-
-//=============================================================================
-
-functionCallExpression
-    : fqIdentifier paramsExpression
-    ;
-
-paramsExpression
-    : L_PAREN (expression (COMMA expression)* )? R_PAREN
+    | chainedExpression
     ;
 
 //=============================================================================
@@ -248,21 +228,37 @@ expressionInParenthesis
 
 //=============================================================================
 
-listExpression
-    : listType initialListValues?
+chainedExpression
+    : ( THIS DOT )? chainItem ( DOT chainItem )*
     ;
 
-initialListValues
-    : L_CURLY expression ( COMMA expression)* R_CURLY
+chainItem
+    : IDENTIFIER ( paramsExpression | accessorExpression )?
+    ;
+
+paramsExpression
+    : L_PAREN (expression (COMMA expression)* )? R_PAREN
+    ;
+
+accessorExpression
+    : L_BRACKET expression R_BRACKET
+    ;
+
+//=============================================================================
+
+barExpression
+    : BAR DOT ( OPEN | HIGH | LOW | CLOSE ) accessorExpression?
+    ;
+
+//=============================================================================
+
+listExpression
+    : L_BRACKET expression ( COMMA expression)* R_BRACKET
     ;
 
 //=============================================================================
 
 mapExpression
-    : mapType initialMapValues?
-    ;
-
-initialMapValues
     : L_CURLY keyValueCouple ( COMMA keyValueCouple)* R_CURLY
     ;
 
@@ -275,16 +271,6 @@ keyValue
     | STRING_VALUE
     | timeValue
     | dateValue
-    ;
-
-//=============================================================================
-
-simplifiedExpression
-    : (MINUS|PLUS) simplifiedExpression
-    | identifierExpression
-    | constantValueExpression
-    | simplifiedExpression (STAR | SLASH) simplifiedExpression
-    | simplifiedExpression (PLUS | MINUS) simplifiedExpression
     ;
 
 //=============================================================================
@@ -310,5 +296,11 @@ boolValue
 
 errorValue
     : ERROR L_PAREN STRING_VALUE R_PAREN;
+
+//=============================================================================
+
+fqIdentifier
+    : IDENTIFIER ( DOT IDENTIFIER )?
+    ;
 
 //=============================================================================

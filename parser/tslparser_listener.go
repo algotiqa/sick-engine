@@ -73,8 +73,14 @@ type TslParserListener interface {
 	// EnterStatement is called when entering the statement production.
 	EnterStatement(c *StatementContext)
 
+	// EnterVarsDeclaration is called when entering the varsDeclaration production.
+	EnterVarsDeclaration(c *VarsDeclarationContext)
+
 	// EnterVarDeclaration is called when entering the varDeclaration production.
 	EnterVarDeclaration(c *VarDeclarationContext)
+
+	// EnterVarsAssignmentOrFunctionCall is called when entering the varsAssignmentOrFunctionCall production.
+	EnterVarsAssignmentOrFunctionCall(c *VarsAssignmentOrFunctionCallContext)
 
 	// EnterIfStatement is called when entering the ifStatement production.
 	EnterIfStatement(c *IfStatementContext)
@@ -85,9 +91,6 @@ type TslParserListener interface {
 	// EnterElseBlock is called when entering the elseBlock production.
 	EnterElseBlock(c *ElseBlockContext)
 
-	// EnterFunctionCall is called when entering the functionCall production.
-	EnterFunctionCall(c *FunctionCallContext)
-
 	// EnterReturnStatement is called when entering the returnStatement production.
 	EnterReturnStatement(c *ReturnStatementContext)
 
@@ -97,44 +100,35 @@ type TslParserListener interface {
 	// EnterUnaryExpression is called when entering the unaryExpression production.
 	EnterUnaryExpression(c *UnaryExpressionContext)
 
-	// EnterIdentifierExpression is called when entering the identifierExpression production.
-	EnterIdentifierExpression(c *IdentifierExpressionContext)
+	// EnterExpressionInParenthesis is called when entering the expressionInParenthesis production.
+	EnterExpressionInParenthesis(c *ExpressionInParenthesisContext)
 
-	// EnterFqIdentifier is called when entering the fqIdentifier production.
-	EnterFqIdentifier(c *FqIdentifierContext)
+	// EnterChainedExpression is called when entering the chainedExpression production.
+	EnterChainedExpression(c *ChainedExpressionContext)
 
-	// EnterAccessorExpression is called when entering the accessorExpression production.
-	EnterAccessorExpression(c *AccessorExpressionContext)
-
-	// EnterFunctionCallExpression is called when entering the functionCallExpression production.
-	EnterFunctionCallExpression(c *FunctionCallExpressionContext)
+	// EnterChainItem is called when entering the chainItem production.
+	EnterChainItem(c *ChainItemContext)
 
 	// EnterParamsExpression is called when entering the paramsExpression production.
 	EnterParamsExpression(c *ParamsExpressionContext)
 
-	// EnterExpressionInParenthesis is called when entering the expressionInParenthesis production.
-	EnterExpressionInParenthesis(c *ExpressionInParenthesisContext)
+	// EnterAccessorExpression is called when entering the accessorExpression production.
+	EnterAccessorExpression(c *AccessorExpressionContext)
+
+	// EnterBarExpression is called when entering the barExpression production.
+	EnterBarExpression(c *BarExpressionContext)
 
 	// EnterListExpression is called when entering the listExpression production.
 	EnterListExpression(c *ListExpressionContext)
 
-	// EnterInitialListValues is called when entering the initialListValues production.
-	EnterInitialListValues(c *InitialListValuesContext)
-
 	// EnterMapExpression is called when entering the mapExpression production.
 	EnterMapExpression(c *MapExpressionContext)
-
-	// EnterInitialMapValues is called when entering the initialMapValues production.
-	EnterInitialMapValues(c *InitialMapValuesContext)
 
 	// EnterKeyValueCouple is called when entering the keyValueCouple production.
 	EnterKeyValueCouple(c *KeyValueCoupleContext)
 
 	// EnterKeyValue is called when entering the keyValue production.
 	EnterKeyValue(c *KeyValueContext)
-
-	// EnterSimplifiedExpression is called when entering the simplifiedExpression production.
-	EnterSimplifiedExpression(c *SimplifiedExpressionContext)
 
 	// EnterConstantValueExpression is called when entering the constantValueExpression production.
 	EnterConstantValueExpression(c *ConstantValueExpressionContext)
@@ -150,6 +144,9 @@ type TslParserListener interface {
 
 	// EnterErrorValue is called when entering the errorValue production.
 	EnterErrorValue(c *ErrorValueContext)
+
+	// EnterFqIdentifier is called when entering the fqIdentifier production.
+	EnterFqIdentifier(c *FqIdentifierContext)
 
 	// ExitScript is called when exiting the script production.
 	ExitScript(c *ScriptContext)
@@ -217,8 +214,14 @@ type TslParserListener interface {
 	// ExitStatement is called when exiting the statement production.
 	ExitStatement(c *StatementContext)
 
+	// ExitVarsDeclaration is called when exiting the varsDeclaration production.
+	ExitVarsDeclaration(c *VarsDeclarationContext)
+
 	// ExitVarDeclaration is called when exiting the varDeclaration production.
 	ExitVarDeclaration(c *VarDeclarationContext)
+
+	// ExitVarsAssignmentOrFunctionCall is called when exiting the varsAssignmentOrFunctionCall production.
+	ExitVarsAssignmentOrFunctionCall(c *VarsAssignmentOrFunctionCallContext)
 
 	// ExitIfStatement is called when exiting the ifStatement production.
 	ExitIfStatement(c *IfStatementContext)
@@ -229,9 +232,6 @@ type TslParserListener interface {
 	// ExitElseBlock is called when exiting the elseBlock production.
 	ExitElseBlock(c *ElseBlockContext)
 
-	// ExitFunctionCall is called when exiting the functionCall production.
-	ExitFunctionCall(c *FunctionCallContext)
-
 	// ExitReturnStatement is called when exiting the returnStatement production.
 	ExitReturnStatement(c *ReturnStatementContext)
 
@@ -241,44 +241,35 @@ type TslParserListener interface {
 	// ExitUnaryExpression is called when exiting the unaryExpression production.
 	ExitUnaryExpression(c *UnaryExpressionContext)
 
-	// ExitIdentifierExpression is called when exiting the identifierExpression production.
-	ExitIdentifierExpression(c *IdentifierExpressionContext)
+	// ExitExpressionInParenthesis is called when exiting the expressionInParenthesis production.
+	ExitExpressionInParenthesis(c *ExpressionInParenthesisContext)
 
-	// ExitFqIdentifier is called when exiting the fqIdentifier production.
-	ExitFqIdentifier(c *FqIdentifierContext)
+	// ExitChainedExpression is called when exiting the chainedExpression production.
+	ExitChainedExpression(c *ChainedExpressionContext)
 
-	// ExitAccessorExpression is called when exiting the accessorExpression production.
-	ExitAccessorExpression(c *AccessorExpressionContext)
-
-	// ExitFunctionCallExpression is called when exiting the functionCallExpression production.
-	ExitFunctionCallExpression(c *FunctionCallExpressionContext)
+	// ExitChainItem is called when exiting the chainItem production.
+	ExitChainItem(c *ChainItemContext)
 
 	// ExitParamsExpression is called when exiting the paramsExpression production.
 	ExitParamsExpression(c *ParamsExpressionContext)
 
-	// ExitExpressionInParenthesis is called when exiting the expressionInParenthesis production.
-	ExitExpressionInParenthesis(c *ExpressionInParenthesisContext)
+	// ExitAccessorExpression is called when exiting the accessorExpression production.
+	ExitAccessorExpression(c *AccessorExpressionContext)
+
+	// ExitBarExpression is called when exiting the barExpression production.
+	ExitBarExpression(c *BarExpressionContext)
 
 	// ExitListExpression is called when exiting the listExpression production.
 	ExitListExpression(c *ListExpressionContext)
 
-	// ExitInitialListValues is called when exiting the initialListValues production.
-	ExitInitialListValues(c *InitialListValuesContext)
-
 	// ExitMapExpression is called when exiting the mapExpression production.
 	ExitMapExpression(c *MapExpressionContext)
-
-	// ExitInitialMapValues is called when exiting the initialMapValues production.
-	ExitInitialMapValues(c *InitialMapValuesContext)
 
 	// ExitKeyValueCouple is called when exiting the keyValueCouple production.
 	ExitKeyValueCouple(c *KeyValueCoupleContext)
 
 	// ExitKeyValue is called when exiting the keyValue production.
 	ExitKeyValue(c *KeyValueContext)
-
-	// ExitSimplifiedExpression is called when exiting the simplifiedExpression production.
-	ExitSimplifiedExpression(c *SimplifiedExpressionContext)
 
 	// ExitConstantValueExpression is called when exiting the constantValueExpression production.
 	ExitConstantValueExpression(c *ConstantValueExpressionContext)
@@ -294,4 +285,7 @@ type TslParserListener interface {
 
 	// ExitErrorValue is called when exiting the errorValue production.
 	ExitErrorValue(c *ErrorValueContext)
+
+	// ExitFqIdentifier is called when exiting the fqIdentifier production.
+	ExitFqIdentifier(c *FqIdentifierContext)
 }

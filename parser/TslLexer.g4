@@ -27,13 +27,13 @@ lexer grammar TslLexer;
 //=== Keywords ================================================================
 
 PACKAGE  : 'package';
-PARAMS   : 'params';
+CONST    : 'const';
+VAR      : 'var';
 FUNC     : 'func';
+
 IF       : 'if';
 ELSE     : 'else';
 FOR      : 'for';
-CONST    : 'const';
-VAR      : 'var';
 TRUE     : 'true';
 FALSE    : 'false';
 RETURN   : 'return';
@@ -43,6 +43,16 @@ NOT      : 'not';
 NULL     : 'null';
 THIS     : 'this';
 OF       : 'of';
+
+//--- Bar
+
+BAR         : 'bar';
+OPEN        : 'open';
+HIGH        : 'high';
+LOW         : 'low';
+CLOSE       : 'close';
+
+//--- Orders
 
 BUY         : 'buy';
 SELL        : 'sell';
@@ -54,7 +64,7 @@ STOP        : 'stop';
 LIMIT       : 'limit';
 CONTRACTS   : 'contracts';
 
-//--- Datatypes ---
+//--- Datatypes
 
 INT        : 'int';
 REAL       : 'real';

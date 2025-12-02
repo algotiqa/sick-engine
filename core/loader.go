@@ -30,6 +30,7 @@ import (
 	"github.com/antlr4-go/antlr/v4"
 	"github.com/tradalia/sick-engine/ast"
 	"github.com/tradalia/sick-engine/parser"
+	"github.com/tradalia/sick-engine/runtime"
 	"github.com/tradalia/sick-engine/tool"
 )
 
@@ -39,17 +40,17 @@ import (
 //===
 //=============================================================================
 
-func CreateEnvironment(path string) (*Environment,*ParseErrors) {
-	pr := NewParseErrors()
+func CreateEnvironment(path string) (*runtime.Environment,*parser.ParseErrors) {
+	pr := parser.NewParseErrors()
 
 	files,err := tool.FindFiles(path, ".tsl")
 	if err != nil {
-		pe := NewParseError(path, -1, -1, err.Error())
+		pe := parser.NewParseError(path, -1, -1, err.Error())
 		pr.AddError(pe)
 		return nil,pr
 	}
 
-	e := NewEnvironment()
+	e := runtime.NewEnvironment()
 
 	for _,file := range files {
 		script,errs := ParseFile(file)
@@ -72,11 +73,11 @@ func CreateEnvironment(path string) (*Environment,*ParseErrors) {
 //===
 //=============================================================================
 
-func ParseFile(filename string) (*ast.Script, *ParseErrors) {
+func ParseFile(filename string) (*ast.Script, *parser.ParseErrors) {
 	stream,err := antlr.NewFileStream(filename)
 	if err != nil {
-		pr := NewParseErrors()
-		pe := NewParseError(filename, -1, -1, err.Error())
+		pr := parser.NewParseErrors()
+		pe := parser.NewParseError(filename, -1, -1, err.Error())
 		pr.AddError(pe)
 		return nil,pr
 	}
@@ -86,25 +87,25 @@ func ParseFile(filename string) (*ast.Script, *ParseErrors) {
 
 //=============================================================================
 
-func ParseString(input string) (*ast.Script, *ParseErrors) {
+func ParseString(input string) (*ast.Script, *parser.ParseErrors) {
 	return parse(antlr.NewInputStream(input))
 }
 
 //=============================================================================
 
-func ParseReader(r io.Reader) (*ast.Script, *ParseErrors) {
+func ParseReader(r io.Reader) (*ast.Script, *parser.ParseErrors) {
 	return parse(antlr.NewIoStream(r))
 }
 
 //=============================================================================
 
-func parse(input antlr.CharStream) (*ast.Script, *ParseErrors) {
+func parse(input antlr.CharStream) (*ast.Script, *parser.ParseErrors) {
 	lexer  := parser.NewTslLexer(input)
 	stream := antlr .NewCommonTokenStream(lexer,0)
 	p      := parser.NewTslParser(stream)
 
-	res := NewParseErrors()
-	lis := NewParseErrorListener(input.GetSourceName(), res)
+	res := parser.NewParseErrors()
+	lis := parser.NewParseErrorListener(input.GetSourceName(), res)
 
 	//--- Add error collection listener
 	p.RemoveErrorListeners()

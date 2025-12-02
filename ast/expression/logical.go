@@ -27,8 +27,8 @@ package expression
 import (
 	"fmt"
 
-	"github.com/tradalia/sick-engine/types"
-	"github.com/tradalia/sick-engine/values"
+	"github.com/tradalia/sick-engine/core/types"
+	"github.com/tradalia/sick-engine/core/values"
 )
 
 //=============================================================================
@@ -52,18 +52,7 @@ func NewAndExpression(expressions []Expression) *AndExpression {
 //=============================================================================
 
 func (e *AndExpression) Eval() (values.Value,error) {
-	for _, cond := range e.expressions {
-		eval,err := evalAsBool(cond)
-		if err != nil {
-			return nil,err
-		}
-
-		if !eval {
-			return values.NewBoolValue(false),nil
-		}
-	}
-
-	return values.NewBoolValue(true),nil
+	return nil,nil
 }
 
 //=============================================================================
@@ -93,18 +82,7 @@ func NewOrExpression(expressions []Expression) *OrExpression {
 //=============================================================================
 
 func (e *OrExpression) Eval() (values.Value,error) {
-	for _, cond := range e.expressions {
-		res,err := evalAsBool(cond)
-		if err != nil {
-			return nil,err
-		}
-
-		if res {
-			return values.NewBoolValue(true),nil
-		}
-	}
-
-	return values.NewBoolValue(false),nil
+	return nil,nil
 }
 
 //=============================================================================
@@ -134,72 +112,13 @@ func NewNotExpression(e Expression) *NotExpression {
 //=============================================================================
 
 func (e *NotExpression) Eval() (values.Value,error) {
-	res,err := evalAsBool(e.expression)
-	if err != nil {
-		return nil,err
-	}
-
-	return values.NewBoolValue(!res),nil
+	return nil,nil
 }
 
 //=============================================================================
 
 func (e *NotExpression) Type() types.Type {
 	return e.expression.Type()
-}
-
-//=============================================================================
-//===
-//=== True
-//===
-//=============================================================================
-
-type TrueExpression struct {
-}
-
-//=============================================================================
-
-func NewTrueExpression() *TrueExpression {
-	return &TrueExpression{}
-}
-
-//=============================================================================
-
-func (e *TrueExpression) Eval() (values.Value,error) {
-	return values.NewBoolValue(true),nil
-}
-
-//=============================================================================
-
-func (e *TrueExpression) Type() types.Type {
-	return types.NewBoolType()
-}
-
-//=============================================================================
-//===
-//=== False
-//===
-//=============================================================================
-
-type FalseExpression struct {
-}
-
-//=============================================================================
-
-func NewFalseExpression() *FalseExpression {
-	return &FalseExpression{}
-}
-
-//=============================================================================
-
-func (e *FalseExpression) Eval() (values.Value,error) {
-	return values.NewBoolValue(false),nil
-}
-
-//=============================================================================
-
-func (e *FalseExpression) Type() types.Type {
-	return types.NewBoolType()
 }
 
 //=============================================================================
