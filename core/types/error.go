@@ -45,8 +45,8 @@ func NewErrorType() *ErrorType {
 
 //=============================================================================
 
-func (ErrorType) Id() int8 {
-	return IdError
+func (ErrorType) Code() int8 {
+	return CodeError
 }
 
 //=============================================================================

@@ -38,6 +38,7 @@ type Value interface {
 
 	Equals  (other Value) bool
 	LessThan(other Value) bool
+	String() string
 }
 
 //=============================================================================

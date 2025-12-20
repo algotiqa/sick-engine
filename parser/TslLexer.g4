@@ -42,7 +42,7 @@ OR       : 'or';
 NOT      : 'not';
 NULL     : 'null';
 THIS     : 'this';
-OF       : 'of';
+NEW      : 'new';
 
 //--- Bar
 

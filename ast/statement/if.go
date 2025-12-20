@@ -24,7 +24,10 @@ THE SOFTWARE.
 
 package statement
 
-import "github.com/tradalia/sick-engine/ast/expression"
+import (
+	"github.com/tradalia/sick-engine/ast/expression"
+	"github.com/tradalia/sick-engine/core/data"
+)
 
 //=============================================================================
 //===
@@ -62,12 +65,12 @@ func (s *IfStatement) Execute() error {
 
 type ConditionalBlock struct {
 	condition  expression.Expression
-	block      *Block
+	block      *data.Block
 }
 
 //=============================================================================
 
-func NewConditionalBlock(c expression.Expression, b *Block) *ConditionalBlock {
+func NewConditionalBlock(c expression.Expression, b *data.Block) *ConditionalBlock {
 	return &ConditionalBlock{
 		condition: c,
 		block:     b,

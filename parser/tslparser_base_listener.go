@@ -122,6 +122,12 @@ func (s *BaseTslParserListener) EnterType(ctx *TypeContext) {}
 // ExitType is called when production type is exited.
 func (s *BaseTslParserListener) ExitType(ctx *TypeContext) {}
 
+// EnterTimeSeriesType is called when production timeSeriesType is entered.
+func (s *BaseTslParserListener) EnterTimeSeriesType(ctx *TimeSeriesTypeContext) {}
+
+// ExitTimeSeriesType is called when production timeSeriesType is exited.
+func (s *BaseTslParserListener) ExitTimeSeriesType(ctx *TimeSeriesTypeContext) {}
+
 // EnterListType is called when production listType is entered.
 func (s *BaseTslParserListener) EnterListType(ctx *ListTypeContext) {}
 

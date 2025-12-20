@@ -45,8 +45,8 @@ func NewTimeType() *TimeType {
 
 //=============================================================================
 
-func (TimeType) Id() int8 {
-	return IdTime
+func (TimeType) Code() int8 {
+	return CodeTime
 }
 
 //=============================================================================

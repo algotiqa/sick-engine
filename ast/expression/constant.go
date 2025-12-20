@@ -25,8 +25,10 @@ THE SOFTWARE.
 package expression
 
 import (
+	"github.com/tradalia/sick-engine/core/interfaces"
 	"github.com/tradalia/sick-engine/core/types"
 	"github.com/tradalia/sick-engine/core/values"
+	"github.com/tradalia/sick-engine/parser"
 )
 
 //=============================================================================
@@ -36,27 +38,29 @@ import (
 //=============================================================================
 
 type ConstantValueExpression struct {
-	Value values.Value
+	Value  values.Value
+	info   *parser.Info
 }
 
 //=============================================================================
 
-func NewConstantValueExpression(value values.Value) *ConstantValueExpression {
+func NewConstantValueExpression(value values.Value, info *parser.Info) *ConstantValueExpression {
 	return &ConstantValueExpression{
 		Value: value,
+		info : info,
 	}
 }
 
 //=============================================================================
 
-func (e *ConstantValueExpression) Eval() (values.Value,error) {
-	return e.Value,nil
+func (e *ConstantValueExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
+	return e.Value.Type(),nil
 }
 
 //=============================================================================
 
-func (e *ConstantValueExpression) Type() types.Type {
-	return e.Value.Type()
+func (e *ConstantValueExpression) Info() *parser.Info {
+	return e.info
 }
 
 //=============================================================================

@@ -25,10 +25,11 @@ THE SOFTWARE.
 package expression
 
 import (
-	"fmt"
+	"errors"
 
+	"github.com/tradalia/sick-engine/core/interfaces"
 	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/core/values"
+	"github.com/tradalia/sick-engine/parser"
 )
 
 //=============================================================================
@@ -39,26 +40,35 @@ import (
 
 type AndExpression struct {
 	expressions []Expression
+	info        *parser.Info
 }
 
 //=============================================================================
 
-func NewAndExpression(expressions []Expression) *AndExpression {
+func NewAndExpression(expressions []Expression, info *parser.Info) *AndExpression {
 	return &AndExpression{
 		expressions: expressions,
+		info       : info,
 	}
 }
 
 //=============================================================================
 
-func (e *AndExpression) Eval() (values.Value,error) {
-	return nil,nil
+func (e *AndExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
+	for _,ex := range e.expressions {
+		err := checkBoolean(ex, scope, embedder, depth)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return types.NewBoolType(),nil
 }
 
 //=============================================================================
 
-func (e *AndExpression) Type() types.Type {
-	return nil
+func (e *AndExpression) Info() *parser.Info {
+	return e.info
 }
 
 //=============================================================================
@@ -69,26 +79,35 @@ func (e *AndExpression) Type() types.Type {
 
 type OrExpression struct {
 	expressions []Expression
+	info        *parser.Info
 }
 
 //=============================================================================
 
-func NewOrExpression(expressions []Expression) *OrExpression {
+func NewOrExpression(expressions []Expression, info *parser.Info) *OrExpression {
 	return &OrExpression{
 		expressions: expressions,
+		info       : info,
 	}
 }
 
 //=============================================================================
 
-func (e *OrExpression) Eval() (values.Value,error) {
-	return nil,nil
+func (e *OrExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
+	for _,ex := range e.expressions {
+		err := checkBoolean(ex, scope, embedder, depth)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return types.NewBoolType(),nil
 }
 
 //=============================================================================
 
-func (e *OrExpression) Type() types.Type {
-	return nil
+func (e *OrExpression) Info() *parser.Info {
+	return e.info
 }
 
 //=============================================================================
@@ -99,49 +118,52 @@ func (e *OrExpression) Type() types.Type {
 
 type NotExpression struct {
 	expression Expression
+	info       *parser.Info
 }
 
 //=============================================================================
 
-func NewNotExpression(e Expression) *NotExpression {
+func NewNotExpression(e Expression, info *parser.Info) *NotExpression {
 	return &NotExpression{
 		expression: e,
+		info      : info,
 	}
 }
 
 //=============================================================================
 
-func (e *NotExpression) Eval() (values.Value,error) {
-	return nil,nil
-}
-
-//=============================================================================
-
-func (e *NotExpression) Type() types.Type {
-	return e.expression.Type()
-}
-
-//=============================================================================
-//===
-//=== Private methods
-//===
-//=============================================================================
-
-func evalAsBool(e Expression) (bool,error) {
-	v,err := e.Eval()
+func (e *NotExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
+	err := checkBoolean(e.expression, scope, embedder, depth)
 	if err != nil {
-		return false,err
+		return nil, err
 	}
 
-	if v.Type() != types.NewBoolType() {
-		return false,fmt.Errorf("expected a boolean value. Found %d", v.Data)
+	return types.NewBoolType(),nil
+}
+
+//=============================================================================
+
+func (e *NotExpression) Info() *parser.Info {
+	return e.info
+}
+
+//=============================================================================
+//===
+//=== Private functions
+//===
+//=============================================================================
+
+func checkBoolean(e Expression, scope interfaces.Scope, embedder interfaces.Symbol, depth int) error {
+	t,err := e.ResolveType(scope, embedder, depth)
+	if err != nil {
+		return err
 	}
 
-	if v.Data == nil {
-		return false,nil
+	if t.Code() != types.CodeBool {
+		return errors.New("resulting expression is not boolean")
 	}
 
-	return v.Data().(bool),nil
+	return nil
 }
 
 //=============================================================================

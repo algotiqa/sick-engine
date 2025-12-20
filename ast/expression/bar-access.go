@@ -25,8 +25,11 @@ THE SOFTWARE.
 package expression
 
 import (
+	"errors"
+
+	"github.com/tradalia/sick-engine/core/interfaces"
 	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/core/values"
+	"github.com/tradalia/sick-engine/parser"
 )
 
 //=============================================================================
@@ -47,27 +50,38 @@ const (
 type BarAccessExpression struct {
 	Bar      int
 	Accessor Expression
+	info     *parser.Info
 }
 
 //=============================================================================
 
-func NewBarAccessExpression(bar int, accessor Expression) *BarAccessExpression {
+func NewBarAccessExpression(bar int, accessor Expression, info *parser.Info) *BarAccessExpression {
 	return &BarAccessExpression{
 		Bar     : bar,
 		Accessor: accessor,
+		info    : info,
 	}
 }
 
 //=============================================================================
 
-func (b *BarAccessExpression) Eval() (values.Value,error) {
-	return nil,nil
+func (e *BarAccessExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
+	t, err := e.Accessor.ResolveType(scope, embedder, depth)
+	if err != nil {
+		return nil, err
+	}
+
+	if t.Code() != types.CodeInt {
+		return nil,errors.New("accessor's type must be int: '" +t.String() + "'")
+	}
+
+	return types.NewRealType(),nil
 }
 
 //=============================================================================
 
-func (b *BarAccessExpression) Type() types.Type {
-	return nil
+func (e *BarAccessExpression) Info() *parser.Info {
+	return e.info
 }
 
 //=============================================================================

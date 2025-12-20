@@ -85,19 +85,26 @@ func ConvertExpression(tree parser.IExpressionContext) Expression {
 //=============================================================================
 
 func convertArithmeticExpression(tree parser.IExpressionContext) Expression {
-	if tree.STAR() != nil {
-		return NewMultExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
-	}
+	if tree.STAR() != nil || tree.SLASH() != nil || tree.PLUS() != nil || tree.MINUS() != nil {
+		expr1 := ConvertExpression(tree.Expression(0))
+		expr2 := ConvertExpression(tree.Expression(1))
+		info  := parser.NewInfo(tree)
 
-	if tree.SLASH() != nil {
-		return NewDivExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
-	}
+		if tree.STAR() != nil {
+			return NewArithmeticExpression(AritOpMult, expr1, expr2, info)
+		}
 
-	if tree.PLUS() != nil {
-		return NewAddExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
-	}
-	if tree.MINUS() != nil {
-		return NewSubExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
+		if tree.SLASH() != nil {
+			return NewArithmeticExpression(AritOpDiv, expr1, expr2, info)
+		}
+
+		if tree.PLUS() != nil {
+			return NewArithmeticExpression(AritOpAdd, expr1, expr2, info)
+		}
+
+		if tree.MINUS() != nil {
+			return NewArithmeticExpression(AritOpSub, expr1, expr2, info)
+		}
 	}
 
 	return nil
@@ -106,28 +113,37 @@ func convertArithmeticExpression(tree parser.IExpressionContext) Expression {
 //=============================================================================
 
 func convertRelationalExpression(tree parser.IExpressionContext) Expression {
-	if tree.EQUAL() != nil {
-		return NewEqualExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
-	}
+	if  tree.EQUAL()         != nil || tree.NOT_EQUAL()        != nil ||
+		tree.LESS_THAN()     != nil || tree.GREATER_THAN()     != nil ||
+		tree.LESS_OR_EQUAL() != nil || tree.GREATER_OR_EQUAL() != nil {
 
-	if tree.LESS_OR_EQUAL() != nil {
-		return NewLessOrEqualExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
-	}
+		expr1 := ConvertExpression(tree.Expression(0))
+		expr2 := ConvertExpression(tree.Expression(1))
+		info  := parser.NewInfo(tree)
 
-	if tree.GREATER_OR_EQUAL() != nil {
-		return NewGreaterOrEqualExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
-	}
+		if tree.EQUAL() != nil {
+			return NewRelationalExpression(RelOpEqual, expr1, expr2, info)
+		}
 
-	if tree.LESS_THAN() != nil {
-		return NewLessThanExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
-	}
+		if tree.LESS_OR_EQUAL() != nil {
+			return NewRelationalExpression(RelOpLessOrEqual, expr1, expr2, info)
+		}
 
-	if tree.GREATER_THAN() != nil {
-		return NewGreaterThanExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
-	}
+		if tree.GREATER_OR_EQUAL() != nil {
+			return NewRelationalExpression(RelOpGreaterOrEqual, expr1, expr2, info)
+		}
 
-	if tree.NOT_EQUAL() != nil {
-		return NewNotEqualExpression(ConvertExpression(tree.Expression(0)), ConvertExpression(tree.Expression(1)))
+		if tree.LESS_THAN() != nil {
+			return NewRelationalExpression(RelOpLessThan, expr1, expr2, info)
+		}
+
+		if tree.GREATER_THAN() != nil {
+			return NewRelationalExpression(RelOpGreaterThan, expr1, expr2, info)
+		}
+
+		if tree.NOT_EQUAL() != nil {
+			return NewRelationalExpression(RelOpNotEqual, expr1, expr2, info)
+		}
 	}
 
 	return nil
@@ -138,17 +154,17 @@ func convertRelationalExpression(tree parser.IExpressionContext) Expression {
 func convertBooleanExpression(tree parser.IExpressionContext) Expression {
 	if tree.AllAND() != nil {
 		expr := buildExpressionList(tree.AllExpression())
-		return NewAndExpression(expr)
+		return NewAndExpression(expr, parser.NewInfo(tree))
 	}
 
 	if tree.AllOR() != nil {
 		expr := buildExpressionList(tree.AllExpression())
-		return NewOrExpression(expr)
+		return NewOrExpression(expr, parser.NewInfo(tree))
 	}
 
 	if tree.NOT() != nil {
 		expr := ConvertExpression(tree.Expression(0))
-		return NewNotExpression(expr)
+		return NewNotExpression(expr, parser.NewInfo(tree))
 	}
 
 	return nil
@@ -190,7 +206,9 @@ func convertUnaryExpression(tree parser.IUnaryExpressionContext) Expression {
 
 	if tree.MINUS() != nil {
 		value := values.NewIntValue(int64(-1))
-		return NewMultExpression(NewConstantValueExpression(value), convertUnaryExpression(tree.UnaryExpression()))
+		expr1 := NewConstantValueExpression(value, parser.NewInfo(tree))
+		expr2 := convertUnaryExpression(tree.UnaryExpression())
+		return NewArithmeticExpression(AritOpMult, expr1, expr2, parser.NewInfo(tree))
 	}
 
 	panic("Unknown unary expression type : " + tree.GetText())
@@ -220,13 +238,18 @@ func convertBarAccessExpression(tree parser.IBarExpressionContext) Expression {
 		panic("Unknown bar expression type : " + tree.GetText())
 	}
 
-	return NewBarAccessExpression(bar, acc)
+	return NewBarAccessExpression(bar, acc, parser.NewInfo(tree))
 }
 
 //=============================================================================
 
 func ConvertChainedExpression(tree parser.IChainedExpressionContext) *ChainedExpression {
-	ce := NewChainedExpression(tree.THIS() != nil)
+	ce := NewChainedExpression(tree.THIS() != nil, tree.NEW() != nil, parser.NewInfo(tree))
+
+	if tree.NEW() != nil {
+		ce.FQClass    = data.NewFQIdentifier(tree.FqIdentifier())
+		ce.InstParams = buildExpressionList(tree.ParamsExpression().AllExpression())
+	}
 
 	for _,item := range tree.AllChainItem() {
 		ci := convertChainItem(item)
@@ -243,23 +266,24 @@ func convertChainItem(tree parser.IChainItemContext) *ChainItem {
 	params := tree.ParamsExpression()
 	acc    := tree.AccessorExpression()
 
-	var accessor Expression
+	var accessor  Expression
+	var paramList []Expression
+
 	if acc != nil {
 		accessor = ConvertExpression(acc.Expression())
 	}
 
 	if params != nil {
-		parser.RaiseError(tree.GetParser(), "accessor after function call is not supported : "+ name)
-		return NewChainItem(CITypeFunctionCall, name, nil, buildExpressionList(params.AllExpression()))
+		paramList = buildExpressionList(params.AllExpression())
 	}
 
-	return NewChainItem(CITypeIdentifier, name, accessor, nil)
+	return NewChainItem(name, accessor, paramList)
 }
 
 //=============================================================================
 
 func convertListExpression(tree parser.IListExpressionContext) Expression {
-	le := NewListExpression()
+	le := NewListExpression(parser.NewInfo(tree))
 
 	for _,e := range tree.AllExpression() {
 		le.AddExpression(ConvertExpression(e))
@@ -271,7 +295,7 @@ func convertListExpression(tree parser.IListExpressionContext) Expression {
 //=============================================================================
 
 func convertMapExpression(tree parser.IMapExpressionContext) Expression {
-	mex := NewMapExpression()
+	mex := NewMapExpression(parser.NewInfo(tree))
 
 	for _,me := range tree.AllKeyValueCouple() {
 		k := convertKeyValue  (me.KeyValue())
@@ -324,7 +348,7 @@ func convertKeyValue(tree parser.IKeyValueContext) values.Value{
 
 func convertConstantValueExpression(tree parser.IConstantValueExpressionContext) Expression {
 	value := convertConstantValue(tree)
-	return NewConstantValueExpression(value)
+	return NewConstantValueExpression(value, parser.NewInfo(tree))
 }
 
 //=============================================================================

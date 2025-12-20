@@ -26,7 +26,6 @@ package ast
 
 import (
 	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/parser"
 )
 
 //=============================================================================
@@ -40,119 +39,47 @@ type Script struct {
 	PackageName string
 	Constants   []*Constant
 	Variables   []*Variable
-	Functions   []*Function
+	Functions   []*types.Function
 	Enums       []*types.EnumType
 	Classes     []*types.ClassType
-
-	identifiers map[string]bool
 }
 
 //=============================================================================
 
 func NewScript(filename string) *Script {
 	return &Script{
-		Filename   : filename,
-		identifiers: make(map[string]bool),
+		Filename : filename,
 	}
 }
 
 //=============================================================================
 
-func (s *Script) AddConstant(c *Constant) bool {
-	if s.testAndSet(c.Name) {
-		return false
-	}
-
+func (s *Script) AddConstant(c *Constant) {
 	s.Constants = append(s.Constants, c)
-	return true
 }
 
 //=============================================================================
 
-func (s *Script) AddVariable(v *Variable) bool {
-	if s.testAndSet(v.Name) {
-		return false
-	}
-
+func (s *Script) AddVariable(v *Variable) {
 	s.Variables = append(s.Variables, v)
-	return true
 }
 
 //=============================================================================
 
-func (s *Script) AddFunction(f *Function) bool {
-	if s.testAndSet(f.Id()) {
-		return false
-	}
-
+func (s *Script) AddFunction(f *types.Function) {
 	s.Functions = append(s.Functions, f)
-	return true
 }
 
 //=============================================================================
 
-func (s *Script) AddEnum(e *types.EnumType) bool {
-	if s.testAndSet(e.Name) {
-		return false
-	}
-
+func (s *Script) AddEnum(e *types.EnumType) {
 	s.Enums = append(s.Enums, e)
-	return true
 }
 
 //=============================================================================
 
-func (s *Script) AddClass(c *types.ClassType) bool {
-	if s.testAndSet(c.Name) {
-		return false
-	}
-
+func (s *Script) AddClass(c *types.ClassType) {
 	s.Classes = append(s.Classes, c)
-	return true
-}
-
-//=============================================================================
-
-func (s *Script) testAndSet(name string) bool {
-	if _, ok := s.identifiers[name]; ok {
-		return true
-	}
-
-	s.identifiers[name] = true
-	return false
-}
-
-//=============================================================================
-//===
-//=== FQIdentifier
-//===
-//=============================================================================
-
-type FQIdentifier struct {
-	Pack string
-	Name string
-}
-
-//=============================================================================
-
-func NewFQIdentifier(tree parser.IFqIdentifierContext) *FQIdentifier {
-	if tree.DOT() == nil {
-		return &FQIdentifier{
-			Pack: "",
-			Name: tree.IDENTIFIER(0).GetText(),
-		}
-	}
-
-	return &FQIdentifier{
-		Pack: tree.IDENTIFIER(0).GetText(),
-		Name: tree.IDENTIFIER(1).GetText(),
-	}
-}
-
-//=============================================================================
-
-func (i *FQIdentifier) String() string {
-	return i.Pack +"."+ i.Name
 }
 
 //=============================================================================

@@ -25,6 +25,7 @@ THE SOFTWARE.
 package types
 
 import (
+	"github.com/tradalia/sick-engine/core/data"
 	"github.com/tradalia/sick-engine/parser"
 )
 
@@ -36,13 +37,13 @@ import (
 
 func ConvertType(tree parser.ITypeContext) Type {
 	if tree.ListType() != nil {
-		lt := tree.ListType()
+		lt      := tree.ListType()
 		subType := ConvertType(lt.Type_())
 		return NewListType(subType)
 	}
 
 	if tree.MapType() != nil {
-		mt := tree.MapType()
+		mt      := tree.MapType()
 		keyType := ConvertKeyType(mt.KeyType())
 		valType := ConvertType(mt.Type_())
 		return NewMapType(keyType, valType)
@@ -72,15 +73,22 @@ func ConvertType(tree parser.ITypeContext) Type {
 		return NewDateType()
 	}
 
-	if tree.TIMESERIES() != nil {
-		return NewTimeseriesType()
+	if tree.TimeSeriesType() != nil {
+		tst := tree.TimeSeriesType()
+		var subType Type = NewRealType()
+		if tst.Type_() != nil {
+			subType = ConvertType(tst.Type_())
+		}
+		return NewTimeSeriesType(subType)
 	}
 
 	if tree.ERROR() != nil {
 		return NewErrorType()
 	}
 
-	return NewToFindOutType(tree.GetText(), parser.NewInfo(tree))
+	fqi := data.NewFQIdentifier(tree.FqIdentifier())
+
+	return NewToFindOutType(fqi, parser.NewInfo(tree))
 }
 
 //=============================================================================

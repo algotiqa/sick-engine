@@ -25,8 +25,12 @@ THE SOFTWARE.
 package expression
 
 import (
+	"errors"
+
+	"github.com/tradalia/sick-engine/core/interfaces"
 	"github.com/tradalia/sick-engine/core/types"
 	"github.com/tradalia/sick-engine/core/values"
+	"github.com/tradalia/sick-engine/parser"
 )
 
 //=============================================================================
@@ -36,32 +40,35 @@ import (
 //=============================================================================
 
 type MapExpression struct {
-	Values map[values.Value]Expression
+	Values   map[values.Value]Expression
+	info     *parser.Info
 }
 
 //=============================================================================
 
-func NewMapExpression() *MapExpression {
+func NewMapExpression(info *parser.Info) *MapExpression {
 	return &MapExpression{
+		Values: map[values.Value]Expression{},
+		info  : info,
 	}
 }
 
 //=============================================================================
 
-func (m *MapExpression) Set(key values.Value, value Expression) {
-	m.Values[key] = value
+func (e *MapExpression) Set(key values.Value, value Expression) {
+	e.Values[key] = value
 }
 
 //=============================================================================
 
-func (m *MapExpression) Type() types.Type {
-	return nil
+func (e *MapExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
+	return nil,errors.New("not implemented")
 }
 
 //=============================================================================
 
-func (m *MapExpression) Eval() (values.Value,error) {
-	return nil,nil
+func (e *MapExpression) Info() *parser.Info {
+	return e.info
 }
 
 //=============================================================================

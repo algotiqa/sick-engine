@@ -26,6 +26,8 @@ package ast
 
 import (
 	"github.com/tradalia/sick-engine/ast/expression"
+	"github.com/tradalia/sick-engine/core/interfaces"
+	"github.com/tradalia/sick-engine/core/types"
 	"github.com/tradalia/sick-engine/parser"
 )
 
@@ -36,8 +38,9 @@ import (
 //=============================================================================
 
 type Variable struct {
-	Name  string
+	name  string
 	Value expression.Expression
+	Type  types.Type
 	Info  *parser.Info
 }
 
@@ -45,10 +48,54 @@ type Variable struct {
 
 func NewVariable(name string, e expression.Expression, info *parser.Info) *Variable {
 	return &Variable{
-		Name : name,
+		name : name,
 		Value: e,
 		Info : info,
 	}
+}
+
+//=============================================================================
+
+func (v *Variable) SetupType(s interfaces.Scope, depth int) error {
+	t,err := v.Value.ResolveType(s, nil, depth)
+	if err != nil {
+		return err
+	}
+
+	v.Type = t
+	return nil
+}
+
+//=============================================================================
+//=== Symbol interface
+//=============================================================================
+
+func (v *Variable) Id() string {
+	return v.name
+}
+
+//=============================================================================
+
+func (v *Variable) Kind() interfaces.Kind {
+	return interfaces.KindConst
+}
+
+//=============================================================================
+
+func (v *Variable) Specie() interfaces.Specie {
+	return interfaces.SpecieObject
+}
+
+//=============================================================================
+
+func (v *Variable) InitScope(parent interfaces.Scope) *parser.ParseError {
+	return nil
+}
+
+//=============================================================================
+
+func (v *Variable) Scope() interfaces.Scope {
+	return nil
 }
 
 //=============================================================================

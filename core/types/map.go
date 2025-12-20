@@ -46,8 +46,8 @@ func NewMapType(keyType, valueType Type) *MapType {
 
 //=============================================================================
 
-func (t *MapType) Id() int8 {
-	return IdMap
+func (t *MapType) Code() int8 {
+	return CodeMap
 }
 
 //=============================================================================

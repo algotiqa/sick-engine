@@ -22,36 +22,47 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package types
+package data
+
+import (
+	"github.com/tradalia/sick-engine/parser"
+)
 
 //=============================================================================
 //===
-//=== List
+//=== FQIdentifier
 //===
 //=============================================================================
 
-type ListType struct {
-	SubType Type
+type FQIdentifier struct {
+	Pack string
+	Name string
 }
 
 //=============================================================================
 
-func NewListType(t Type) *ListType {
-	return &ListType{
-		SubType: t,
+func NewFQIdentifier(tree parser.IFqIdentifierContext) *FQIdentifier {
+	if tree.DOT() == nil {
+		return &FQIdentifier{
+			Pack: "",
+			Name: tree.IDENTIFIER(0).GetText(),
+		}
+	}
+
+	return &FQIdentifier{
+		Pack: tree.IDENTIFIER(0).GetText(),
+		Name: tree.IDENTIFIER(1).GetText(),
 	}
 }
 
 //=============================================================================
 
-func (t *ListType) Code() int8 {
-	return CodeList
-}
+func (i *FQIdentifier) String() string {
+	if i.Pack == "" {
+		return i.Name
+	}
 
-//=============================================================================
-
-func (t *ListType) String() string {
-	return "list=("+ t.SubType.String() +")"
+	return i.Pack +"."+ i.Name
 }
 
 //=============================================================================

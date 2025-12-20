@@ -25,6 +25,8 @@ THE SOFTWARE.
 package types
 
 import (
+	"github.com/tradalia/sick-engine/core/data"
+	"github.com/tradalia/sick-engine/core/interfaces"
 	"github.com/tradalia/sick-engine/parser"
 )
 
@@ -35,34 +37,27 @@ import (
 //=============================================================================
 
 type EnumType struct {
-	Name     string
-	IsInt    bool
-	Items    []*EnumItem
-	ItemMap  map[string]*EnumItem
+	name    string
+	IsInt   bool
+	Items   []*EnumItem
 	Info    *parser.Info
+	scope   interfaces.Scope
 }
 
 //=============================================================================
 
 func NewEnumType(name string, isInt bool, info *parser.Info) *EnumType {
 	return &EnumType{
-		Name   : name,
+		name   : name,
 		IsInt  : isInt,
-		ItemMap: make(map[string]*EnumItem),
 		Info   : info,
 	}
 }
 
 //=============================================================================
 
-func (e *EnumType) AddItem(i *EnumItem) bool {
-	if _,ok := e.ItemMap[i.Name]; ok {
-		return false
-	}
-
+func (e *EnumType) AddItem(i *EnumItem) {
 	e.Items = append(e.Items, i)
-	e.ItemMap[i.Name] = i
-	return true
 }
 
 //=============================================================================
@@ -81,14 +76,53 @@ func (e *EnumType) AssignCodes() {
 
 //=============================================================================
 
-func (e *EnumType) Id() int8 {
-	return IdEnum
+func (e *EnumType) Code() int8 {
+	return CodeEnum
 }
 
 //=============================================================================
 
 func (e *EnumType) String() string {
-	return "enum="+ e.Name
+	return "enum="+ e.name
+}
+
+//=============================================================================
+//=== Symbol interface
+//=============================================================================
+
+func (e *EnumType) Id() string {
+	return e.name
+}
+
+//=============================================================================
+
+func (e *EnumType) Kind() interfaces.Kind {
+	return interfaces.KindEnum
+}
+
+//=============================================================================
+
+func (e *EnumType) Specie() interfaces.Specie {
+	return interfaces.SpecieType
+}
+
+//=============================================================================
+
+func (e *EnumType) InitScope(parent interfaces.Scope) *parser.ParseError {
+	e.scope = data.NewSymbolTable()
+
+	for _, item := range e.Items {
+		if !e.scope.Define(item) {
+			return parser.NewParseErrorFromInfo(e.Info, "item duplicated in enum: "+ item.Id())
+		}
+	}
+	return nil
+}
+
+//=============================================================================
+
+func (e *EnumType) Scope() interfaces.Scope {
+	return e.scope
 }
 
 //=============================================================================
@@ -98,7 +132,7 @@ func (e *EnumType) String() string {
 //=============================================================================
 
 type EnumItem struct {
-	Name  string
+	name  string
 	Code  int
 	Value string
 }
@@ -107,6 +141,38 @@ type EnumItem struct {
 
 func NewEnumItem(name string, code int, value string) *EnumItem {
 	return &EnumItem{name, code, value}
+}
+
+//=============================================================================
+//=== Symbol interface
+//=============================================================================
+
+func (e *EnumItem) Id() string {
+	return e.name
+}
+
+//=============================================================================
+
+func (e *EnumItem) Kind() interfaces.Kind {
+	return interfaces.KindEnumItem
+}
+
+//=============================================================================
+
+func (e *EnumItem) Specie() interfaces.Specie {
+	return interfaces.SpecieOther
+}
+
+//=============================================================================
+
+func (e *EnumItem) InitScope(parent interfaces.Scope) *parser.ParseError {
+	return nil
+}
+
+//=============================================================================
+
+func (e *EnumItem) Scope() interfaces.Scope {
+	return nil
 }
 
 //=============================================================================

@@ -24,7 +24,11 @@ THE SOFTWARE.
 
 package values
 
-import "github.com/tradalia/sick-engine/core/types"
+import (
+	"strings"
+
+	"github.com/tradalia/sick-engine/core/types"
+)
 
 //=============================================================================
 //===
@@ -76,6 +80,23 @@ func (v *MapValue) Equals(other Value) bool {
 
 func (v *MapValue) LessThan(other Value) bool {
 	return false
+}
+
+//=============================================================================
+
+func (v *MapValue) String() string {
+	var sb strings.Builder
+	sb.WriteString("{ ")
+
+	for key, value := range v.values {
+		sb.WriteString(key.String())
+		sb.WriteString(": ")
+		sb.WriteString(value.String())
+		sb.WriteString(", ")
+	}
+
+	sb.WriteString("}")
+	return sb.String()
 }
 
 //=============================================================================

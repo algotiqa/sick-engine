@@ -22,36 +22,22 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package types
+package interfaces
+
+import "iter"
 
 //=============================================================================
 //===
-//=== List
+//=== Scope (variables namespace)
 //===
 //=============================================================================
 
-type ListType struct {
-	SubType Type
-}
-
-//=============================================================================
-
-func NewListType(t Type) *ListType {
-	return &ListType{
-		SubType: t,
-	}
-}
-
-//=============================================================================
-
-func (t *ListType) Code() int8 {
-	return CodeList
-}
-
-//=============================================================================
-
-func (t *ListType) String() string {
-	return "list=("+ t.SubType.String() +")"
+type Scope interface {
+	Resolve(name string) Symbol
+	Define(s Symbol) bool
+	Push() Scope
+	Pop () Scope
+	AllSymbols() iter.Seq[Symbol]
 }
 
 //=============================================================================

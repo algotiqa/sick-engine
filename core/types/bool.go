@@ -45,8 +45,8 @@ func NewBoolType() *BoolType {
 
 //=============================================================================
 
-func (BoolType) Id() int8 {
-	return IdBool
+func (BoolType) Code() int8 {
+	return CodeBool
 }
 
 //=============================================================================

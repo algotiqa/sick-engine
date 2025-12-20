@@ -28,6 +28,8 @@ import (
 	"strconv"
 
 	"github.com/tradalia/sick-engine/ast/expression"
+	"github.com/tradalia/sick-engine/core/data"
+	"github.com/tradalia/sick-engine/core/interfaces"
 	"github.com/tradalia/sick-engine/core/types"
 	"github.com/tradalia/sick-engine/parser"
 	"github.com/tradalia/sick-engine/tool"
@@ -39,8 +41,8 @@ import (
 //===
 //=============================================================================
 
-func ConvertBlock(tree parser.IBlockContext) *Block {
-	block := &Block{}
+func ConvertBlock(tree parser.IBlockContext) *data.Block {
+	block := &data.Block{}
 
 	for _,stmt := range tree.AllStatement() {
 		varsDecl := stmt.VarsDeclaration()
@@ -96,7 +98,7 @@ func convertVarDeclaration(tree parser.IVarDeclarationContext) *VarDeclaration {
 
 //=============================================================================
 
-func convertVarAssignmentOrFunctionCall(tree parser.IVarsAssignmentOrFunctionCallContext) []Statement {
+func convertVarAssignmentOrFunctionCall(tree parser.IVarsAssignmentOrFunctionCallContext) []interfaces.Statement {
 	var chains      []*expression.ChainedExpression
 	var expressions [] expression.Expression
 
@@ -117,7 +119,7 @@ func convertVarAssignmentOrFunctionCall(tree parser.IVarsAssignmentOrFunctionCal
 	//--- Case 1: No EQUAL sign
 	//--- Just a sequence of chain expressions. These must be function calls
 
-	var vas []Statement
+	var vas []interfaces.Statement
 
 	if tree.EQUAL() == nil {
 		for _,chain := range chains {

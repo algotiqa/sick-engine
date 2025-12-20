@@ -45,8 +45,8 @@ func NewRealType() *RealType {
 
 //=============================================================================
 
-func (RealType) Id() int8 {
-	return IdReal
+func (RealType) Code() int8 {
+	return CodeReal
 }
 
 //=============================================================================

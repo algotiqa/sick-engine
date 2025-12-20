@@ -25,13 +25,20 @@ THE SOFTWARE.
 package runtime
 
 import (
-	"strings"
-
 	"github.com/tradalia/sick-engine/ast"
+	"github.com/tradalia/sick-engine/core/data"
+	"github.com/tradalia/sick-engine/core/interfaces"
 	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/core/values"
 	"github.com/tradalia/sick-engine/parser"
 )
+
+//=============================================================================
+//===
+//=== Const
+//===
+//=============================================================================
+
+const MaxResolutionDepth = 16
 
 //=============================================================================
 //===
@@ -40,26 +47,14 @@ import (
 //=============================================================================
 
 type Environment struct {
-	constants  map[string]*ast.Constant
-	variables  map[string]*ast.Variable
-	functions  map[string]*ast.Function
-	enums      map[string]*types.EnumType
-	classes    map[string]*types.ClassType
-
-	duplicates map[string]bool
-	classFunc  []*ast.Function
+	scope interfaces.Scope
 }
 
 //=============================================================================
 
 func NewEnvironment() *Environment {
 	return &Environment{
-		constants  : make(map[string]*ast.Constant),
-		variables  : make(map[string]*ast.Variable),
-		functions  : make(map[string]*ast.Function),
-		enums      : make(map[string]*types.EnumType),
-		classes    : make(map[string]*types.ClassType),
-		duplicates : make(map[string]bool),
+		scope: data.NewSymbolTable(),
 	}
 }
 
@@ -67,25 +62,26 @@ func NewEnvironment() *Environment {
 
 func (e *Environment) AddScript(s *ast.Script) *parser.ParseErrors {
 	pes := parser.NewParseErrors()
+	pac := e.getOrCreatePackage(s.PackageName)
 
 	for _,c := range s.Constants {
-		e.addConstant(s.PackageName, c, pes)
+		e.addConstant(pac, c, pes)
 	}
 
 	for _,v := range s.Variables {
-		e.addVariable(s.PackageName, v, pes)
+		e.addVariable(pac, v, pes)
 	}
 
 	for _,f := range s.Functions {
-		e.addFunction(s.PackageName, f, pes)
+		e.addFunction(pac, f, pes)
 	}
 
 	for _,en := range s.Enums {
-		e.addEnum(s.PackageName, en, pes)
+		e.addEnum(pac, en, pes)
 	}
 
 	for _,c := range s.Classes {
-		e.addClass(s.PackageName, c, pes)
+		e.addClass(pac, c, pes)
 	}
 
 	return pes
@@ -94,9 +90,15 @@ func (e *Environment) AddScript(s *ast.Script) *parser.ParseErrors {
 //=============================================================================
 
 func (e *Environment) Build() *parser.ParseError {
-	err := e.resolveTypes()
+	err := e.assignMethodsToClasses()
 	if err == nil {
-		err = e.assignMethodsToClasses()
+		err = e.convertToFindOutTypes()
+		if err == nil {
+			err = e.initScopes()
+			if err == nil {
+				err = e.resolveGlobalObjectTypes()
+			}
+		}
 	}
 
 	return err
@@ -108,117 +110,74 @@ func (e *Environment) Build() *parser.ParseError {
 //===
 //=============================================================================
 
-func (e *Environment) addConstant(pack string, c *ast.Constant, pes *parser.ParseErrors) {
-	fqn := pack + "." + c.Name
-
-	if e.testDuplicatesAndSet(fqn) {
-		pe := parser.NewParseErrorFromInfo(c.Info, "constant name already used: " + fqn)
-		pes.AddError(pe)
-		return
+func (e *Environment) getOrCreatePackage(name string) *Package {
+	pac := e.scope.ResolveLocally(name)
+	if pac == nil {
+		pac = NewPackage(name, e.scope)
+		e.scope.Define(pac)
 	}
 
-	e.constants[fqn] = c
+	return pac.(*Package)
 }
 
 //=============================================================================
 
-func (e *Environment) addVariable(pack string, v *ast.Variable, pes *parser.ParseErrors) {
-	fqn := pack + "." + v.Name
-
-	if e.testDuplicatesAndSet(fqn) {
-		pe := parser.NewParseErrorFromInfo(v.Info, "variable name already used: " + fqn)
+func (e *Environment) addConstant(pack *Package, c *ast.Constant, pes *parser.ParseErrors) {
+	if !pack.scope.Define(c) {
+		pe := parser.NewParseErrorFromInfo(c.Info, "constant name already used: " + c.Id())
 		pes.AddError(pe)
 		return
 	}
-
-	e.variables[fqn] = v
 }
 
 //=============================================================================
 
-func (e *Environment) addFunction(pack string, f *ast.Function, pes *parser.ParseErrors) {
-	if f.Class != "" {
+func (e *Environment) addVariable(pack *Package, v *ast.Variable, pes *parser.ParseErrors) {
+	if !pack.scope.Define(v) {
+		pe := parser.NewParseErrorFromInfo(v.Info, "variable name already used: " + v.Id())
+		pes.AddError(pe)
+		return
+	}
+}
+
+//=============================================================================
+
+func (e *Environment) addFunction(pack *Package, f *types.Function, pes *parser.ParseErrors) {
+	if f.Class != nil {
 		//--- Function belongs to a class (it's a method)
 
-		if !strings.Contains(f.Class, ".") {
-			f.Class = pack +"."+ f.Class
+		if f.Class.Pack != "" {
+			pack = e.getOrCreatePackage(f.Class.Pack)
 		}
-		e.classFunc = append(e.classFunc, f)
+		pack.AddFunction(f)
 	} else {
 		//--- Function is standalone
 
-		fqn := pack + "." + f.Id()
-
-		if e.testDuplicatesAndSet(fqn) {
-			pe := parser.NewParseErrorFromInfo(f.Info, "function name already used: " + fqn)
+		if !pack.scope.Define(f) {
+			pe := parser.NewParseErrorFromInfo(f.Info, "function name already used: " + f.Id())
 			pes.AddError(pe)
 			return
 		}
-
-		e.functions[fqn] = f
-	}
-
-	for _, p := range f.Params {
-		addPackageToType(p.Type, pack)
-	}
-
-	for _, r := range f.Returns {
-		addPackageToType(r, pack)
 	}
 }
 
 //=============================================================================
 
-func (e *Environment) addEnum(pack string, en *types.EnumType, pes *parser.ParseErrors) {
-	fqn := pack + "." + en.Name
-
-	if e.testDuplicatesAndSet(fqn) {
-		pe := parser.NewParseErrorFromInfo(en.Info, "enum name already used: " + fqn)
+func (e *Environment) addEnum(pack *Package, en *types.EnumType, pes *parser.ParseErrors) {
+	if !pack.scope.Define(en) {
+		pe := parser.NewParseErrorFromInfo(en.Info, "enum name already used: " + en.Id())
 		pes.AddError(pe)
 		return
 	}
-
-	e.enums[fqn] = en
 }
 
 //=============================================================================
 
-func (e *Environment) addClass(pack string, c *types.ClassType, pes *parser.ParseErrors) {
-	fqn := pack + "." + c.Name
-
-	if e.testDuplicatesAndSet(fqn) {
-		pe := parser.NewParseErrorFromInfo(c.Info, "class name already used: " + fqn)
+func (e *Environment) addClass(pack *Package, c *types.ClassType, pes *parser.ParseErrors) {
+	if !pack.scope.Define(c) {
+		pe := parser.NewParseErrorFromInfo(c.Info, "class name already used: " + c.Id())
 		pes.AddError(pe)
 		return
-	}
-
-	e.classes[fqn] = c
-
-	for _, p := range c.Properties {
-		addPackageToType(p.Type, pack)
-	}
-}
-
-//=============================================================================
-
-func (e *Environment) testDuplicatesAndSet(fqName string) bool {
-	if _, ok := e.duplicates[fqName]; ok {
-		return true
-	}
-
-	e.duplicates[fqName] = true
-	return false
-}
-
-//=============================================================================
-
-func addPackageToType(t types.Type, pack string) {
-	switch t.(type) {
-		case *types.ToFindOutType:
-			at := t.(*types.ToFindOutType)
-			if !strings.Contains(at.Name, ".") {
-				at.Name = pack +"."+ at.Name
-			}
 	}
 }
 
@@ -228,31 +187,56 @@ func addPackageToType(t types.Type, pack string) {
 //===
 //=============================================================================
 
-func (e *Environment) resolveTypes() *parser.ParseError {
-	var err *parser.ParseError
+//=============================================================================
+//=== Move functions to proper classes if they are methods
+//=============================================================================
 
-	for _, f := range e.functions {
-		for _, p := range f.Params {
-			p.Type,err = e.resolveType(p.Type)
-			if err != nil {
-				return err
-			}
-		}
-
-		for i, r := range f.Returns {
-			r, err = e.resolveType(r)
-			if err != nil {
-				return err
-			}
-			f.Returns[i] = r
+func (e *Environment) assignMethodsToClasses() *parser.ParseError{
+	for p := range e.scope.AllSymbols() {
+		pack := p.(*Package)
+		err  := pack.AssignMethodsToClasses()
+		if err != nil {
+			return err
 		}
 	}
 
-	for _, c := range e.classes {
-		for _, p := range c.Properties {
-			p.Type,err = e.resolveType(p.Type)
-			if err != nil {
-				return err
+	return nil
+}
+
+//=============================================================================
+//=== Substitutes ToFindOutType with the real type for
+//===  - General functions (parameters and return types)
+//===  - Class properties
+//===  - Class methods (parameters and return types)
+//=============================================================================
+
+func (e *Environment) convertToFindOutTypes() *parser.ParseError {
+	var err *parser.ParseError
+
+	for p := range e.scope.AllSymbols() {
+		pack := p.(*Package)
+		for s := range pack.scope.AllSymbols() {
+			if s.Kind() == interfaces.KindFunction {
+				err = e.resolveFunctionTypes(pack.scope, s.(*types.Function))
+				if err != nil {
+					return err
+				}
+			}
+
+			if s.Kind() == interfaces.KindClass {
+				c := s.(*types.ClassType)
+				for _, p := range c.Properties {
+					p.Type,err = e.resolveType(pack.scope, p.Type)
+					if err != nil {
+						return err
+					}
+				}
+				for _, f := range c.Functions {
+					err = e.resolveFunctionTypes(pack.scope, f)
+					if err != nil {
+						return err
+					}
+				}
 			}
 		}
 	}
@@ -262,13 +246,36 @@ func (e *Environment) resolveTypes() *parser.ParseError {
 
 //=============================================================================
 
-func (e *Environment) resolveType(t types.Type) (types.Type, *parser.ParseError) {
+func (e *Environment) resolveFunctionTypes(scope interfaces.Scope, f *types.Function) *parser.ParseError {
+	var err *parser.ParseError
+
+	for _, p := range f.Params {
+		p.Type,err = e.resolveType(scope, p.Type)
+		if err != nil {
+			return err
+		}
+	}
+
+	for i, r := range f.Returns {
+		r, err = e.resolveType(scope, r)
+		if err != nil {
+			return err
+		}
+		f.Returns[i] = r
+	}
+
+	return nil
+}
+
+//=============================================================================
+
+func (e *Environment) resolveType(scope interfaces.Scope, t types.Type) (types.Type, *parser.ParseError) {
 	switch t.(type) {
 		case *types.ToFindOutType:
 			at := t.(*types.ToFindOutType)
-			rt := e.searchType(at.Name)
+			rt := e.searchType(scope, at.Name)
 			if rt == nil {
-				return t,parser.NewParseErrorFromInfo(at.Info, "can't resolve type: " + at.Name)
+				return t,parser.NewParseErrorFromInfo(at.Info, "can't resolve type: " + at.Name.String())
 			}
 			return rt,nil
 	}
@@ -278,50 +285,68 @@ func (e *Environment) resolveType(t types.Type) (types.Type, *parser.ParseError)
 
 //=============================================================================
 
-func (e *Environment) searchType(name string) types.Type {
-	if t,ok := e.enums[name]; ok {
-		return t
+func (e *Environment) searchType(scope interfaces.Scope, name *data.FQIdentifier) types.Type {
+	if name.Pack != "" {
+		s := scope.ResolveGlobally(name.Pack)
+		if s == nil || s.Kind() != interfaces.KindPackage {
+			return nil
+		}
+
+		scope = s.(*Package).scope
 	}
 
-	if t,ok := e.classes[name]; ok {
-		return t
-	}
-
-	return nil
-}
-
-//=============================================================================
-
-func (e *Environment) assignMethodsToClasses() *parser.ParseError{
-	for _, f := range e.classFunc {
-		if c,ok := e.classes[f.Class]; ok {
-			if !c.AddMethod(f) {
-				return parser.NewParseErrorFromInfo(f.Info, "method name already used in class: " + f.Name)
-			}
-		} else {
-			return parser.NewParseErrorFromInfo(f.Info, "can't resolve class for function: " + f.Class)
+	t := scope.ResolveLocally(name.Name)
+	if t != nil {
+		if t.Specie() == interfaces.SpecieType {
+			return t.(types.Type)
 		}
 	}
 
-	e.classFunc = nil
 	return nil
 }
 
 //=============================================================================
+//=== Scope initialization
+//===  - Adds all entities to containers, checking for duplicates
+//=============================================================================
 
-func (e *Environment) validateFunctions() *parser.ParseError {
-	for _, f := range e.functions {
-		err := e.validateFunction(f)
+func (e *Environment) initScopes() *parser.ParseError {
+	for s := range e.scope.AllSymbols() {
+		err := s.InitScope(e.scope)
 		if err != nil {
 			return err
 		}
 	}
+	return nil
+}
 
-	for _, c := range e.classes {
-		for _, f := range c.Methods {
-			err := e.validateFunction(f.(*ast.Function))
+//=============================================================================
+//=== Type resolution for global Constants and variables
+//=============================================================================
+
+func (e *Environment) resolveGlobalObjectTypes() *parser.ParseError {
+	//--- First, resolve type for global constants
+
+	for s := range e.scope.AllSymbols() {
+		if s.Kind() == interfaces.KindConst {
+			c   := s.(*ast.Constant)
+			err := c.SetupType(e.scope, MaxResolutionDepth)
+
 			if err != nil {
-				return err
+				return parser.NewParseErrorFromInfo(c.Info, "cannot resolve type for constant '"+ c.Id() +"' : "+ err.Error())
+			}
+		}
+	}
+
+	//--- Once all constants are fine, resolve type for global variables
+
+	for s := range e.scope.AllSymbols() {
+		if s.Kind() == interfaces.KindVar {
+			v   := s.(*ast.Variable)
+			err := v.SetupType(e.scope, MaxResolutionDepth)
+
+			if err != nil {
+				return parser.NewParseErrorFromInfo(v.Info, "cannot resolve type for constant '"+ v.Id() +"' : "+ err.Error())
 			}
 		}
 	}
@@ -330,30 +355,35 @@ func (e *Environment) validateFunctions() *parser.ParseError {
 }
 
 //=============================================================================
+//=============================================================================
 
-func (e *Environment) validateFunction(f *ast.Function) *parser.ParseError {
-	for _, f := range e.functions {
-		err := e.validateFunction(f)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
+//func (e *Environment) validateFunctions() *parser.ParseError {
+//	for s := range e.globalScope.AllSymbols() {
+//		if s.Kind() == interfaces.KindFunction {
+//			err := e.validateFunction(s.(*ast.Function))
+//			if err != nil {
+//				return err
+//			}
+//		}
+//
+//		if s.Kind() == interfaces.KindClass {
+//			c := s.(*types.ClassType)
+//			for _, f := range c.Methods {
+//				err := e.validateFunction(f.(*ast.Function))
+//				if err != nil {
+//					return err
+//				}
+//			}
+//		}
+//	}
+//
+//	return nil
+//}
 
 //=============================================================================
 
-// Alle variabili dentro le funzioni occorre assegnare o il tipo dall'espressione
-// o un valore di default dal tipo
+//func (e *Environment) validateFunction(f *ast.Function) *parser.ParseError {
+//	return nil
+//}
 
 //=============================================================================
-//===
-//=== Evaluator
-//===
-//=============================================================================
-
-type Env interface {
-	CallFunction(fqn string, object any) (values.Value, error)
-}
-

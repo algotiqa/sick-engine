@@ -24,7 +24,10 @@ THE SOFTWARE.
 
 package types
 
-import "github.com/tradalia/sick-engine/parser"
+import (
+	"github.com/tradalia/sick-engine/core/data"
+	"github.com/tradalia/sick-engine/parser"
+)
 
 //=============================================================================
 //===
@@ -33,13 +36,13 @@ import "github.com/tradalia/sick-engine/parser"
 //=============================================================================
 
 type ToFindOutType struct {
-	Name  string
-	Info *parser.Info
+	Name  *data.FQIdentifier
+	Info  *parser.Info
 }
 
 //=============================================================================
 
-func NewToFindOutType(name string, info *parser.Info) *ToFindOutType {
+func NewToFindOutType(name *data.FQIdentifier, info *parser.Info) *ToFindOutType {
 	return &ToFindOutType{
 		Name: name,
 		Info: info,
@@ -48,14 +51,14 @@ func NewToFindOutType(name string, info *parser.Info) *ToFindOutType {
 
 //=============================================================================
 
-func (t *ToFindOutType) Id() int8 {
-	return IdToFindOut
+func (t *ToFindOutType) Code() int8 {
+	return CodeToFindOut
 }
 
 //=============================================================================
 
 func (t *ToFindOutType) String() string {
-	return "tfo=(" + t.Name + ")"
+	return "tfo=(" + t.Name.String() + ")"
 }
 
 //=============================================================================

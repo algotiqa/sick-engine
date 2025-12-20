@@ -22,13 +22,13 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package ast
+package types
 
 import (
 	"strings"
 
-	"github.com/tradalia/sick-engine/ast/statement"
-	"github.com/tradalia/sick-engine/core/types"
+	"github.com/tradalia/sick-engine/core/data"
+	"github.com/tradalia/sick-engine/core/interfaces"
 	"github.com/tradalia/sick-engine/parser"
 )
 
@@ -39,29 +39,48 @@ import (
 //=============================================================================
 
 type Function struct {
-	Name     string
-	Class    string
+	name     string
+	Class    *data.FQIdentifier
 	Params   []*Param
-	Returns  []types.Type
-	Block    *statement.Block
+	Returns  []Type
+	Block    *data.Block
 	Info     *parser.Info
+	scope    interfaces.Scope
 }
 
 //=============================================================================
 
 func NewFunction(name string, info *parser.Info) *Function {
 	return &Function{
-		Name : name,
+		name : name,
 		Info : info,
 	}
 }
 //=============================================================================
 
+func (f *Function) AddParam(p *Param) {
+	f.Params = append(f.Params, p)
+}
+
+//=============================================================================
+
+func (f *Function) AddReturnType(t Type) {
+	f.Returns = append(f.Returns, t)
+}
+
+//=============================================================================
+
+func (f *Function) SetEmbedder(embedder interfaces.Symbol) {
+	f.Block.SetEmbedder(embedder)
+}
+
+//=============================================================================
+//=== Symbol interface
+//=============================================================================
+
 func (f *Function) Id() string {
 	sb := strings.Builder{}
-	sb.WriteString(f.Name)
-	sb.WriteString("|")
-	sb.WriteString(f.Class)
+	sb.WriteString(f.name)
 	sb.WriteString("|")
 
 	for _,p := range f.Params {
@@ -74,14 +93,34 @@ func (f *Function) Id() string {
 
 //=============================================================================
 
-func (f *Function) AddParam(p *Param) {
-	f.Params = append(f.Params, p)
+func (f *Function) Kind() interfaces.Kind {
+	return interfaces.KindFunction
 }
 
 //=============================================================================
 
-func (f *Function) AddReturnType(t types.Type) {
-	f.Returns = append(f.Returns, t)
+func (f *Function) Specie() interfaces.Specie {
+	return interfaces.SpecieOther
+}
+
+//=============================================================================
+
+func (f *Function) InitScope(parent interfaces.Scope) *parser.ParseError {
+	f.scope = parent.Push()
+
+	for _, param := range f.Params {
+		if !f.scope.Define(param) {
+			return parser.NewParseErrorFromInfo(param.Info, "parameter duplicated in function: "+ param.Id())
+		}
+	}
+
+	return f.Block.InitScope(f.scope)
+}
+
+//=============================================================================
+
+func (f *Function) Scope() interfaces.Scope {
+	return f.scope
 }
 
 //=============================================================================
@@ -92,18 +131,50 @@ func (f *Function) AddReturnType(t types.Type) {
 
 type Param struct {
 	Name string
-	Type types.Type
+	Type Type
 	Info *parser.Info
 }
 
 //=============================================================================
 
-func NewParam(name string, t types.Type, info *parser.Info) *Param {
+func NewParam(name string, t Type, info *parser.Info) *Param {
 	return &Param{
 		Name: name,
 		Type: t,
 		Info: info,
 	}
+}
+
+//=============================================================================
+//=== Symbol interface
+//=============================================================================
+
+func (p *Param) Id() string {
+	return p.Name
+}
+
+//=============================================================================
+
+func (p *Param) Kind() interfaces.Kind {
+	return interfaces.KindParameter
+}
+
+//=============================================================================
+
+func (p *Param) Specie() interfaces.Specie {
+	return interfaces.SpecieOther
+}
+
+//=============================================================================
+
+func (p *Param) InitScope(parent interfaces.Scope) *parser.ParseError {
+	return nil
+}
+
+//=============================================================================
+
+func (p *Param) Scope() interfaces.Scope {
+	return nil
 }
 
 //=============================================================================

@@ -24,7 +24,11 @@ THE SOFTWARE.
 
 package values
 
-import "github.com/tradalia/sick-engine/core/types"
+import (
+	"strings"
+
+	"github.com/tradalia/sick-engine/core/types"
+)
 
 //=============================================================================
 //===
@@ -73,6 +77,23 @@ func (v *ListValue) Equals(other Value) bool {
 
 func (v *ListValue) LessThan(other Value) bool {
 	return false
+}
+
+//=============================================================================
+
+func (v *ListValue) String() string {
+	var sb strings.Builder
+	sb.WriteString("[ ")
+
+	for i, value := range v.values {
+		if i != 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(value.String())
+	}
+
+	sb.WriteString("]")
+	return sb.String()
 }
 
 //=============================================================================

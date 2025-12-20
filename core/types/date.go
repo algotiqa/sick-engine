@@ -45,8 +45,8 @@ func NewDateType() *DateType {
 
 //=============================================================================
 
-func (DateType) Id() int8 {
-	return IdDate
+func (DateType) Code() int8 {
+	return CodeDate
 }
 
 //=============================================================================

@@ -25,6 +25,8 @@ THE SOFTWARE.
 package types
 
 import (
+	"github.com/tradalia/sick-engine/core/data"
+	"github.com/tradalia/sick-engine/core/interfaces"
 	"github.com/tradalia/sick-engine/parser"
 )
 
@@ -35,55 +37,97 @@ import (
 //=============================================================================
 
 type ClassType struct {
-	Name        string
-	Properties  map[string]*Property
-	Methods     map[string]Method
-	Info       *parser.Info
+	name        string
+	Properties  []*Property
+	Functions   []*Function
+	Info        *parser.Info
+	classScope  interfaces.Scope
 }
 
 //=============================================================================
 
 func NewClassType(name string, info *parser.Info) *ClassType {
 	return &ClassType{
-		Name      : name,
-		Properties: map[string]*Property{},
-		Methods   : map[string]Method{},
-		Info      : info,
+		name : name,
+		Info : info,
 	}
 }
 
 //=============================================================================
 
-func (t *ClassType) AddProperty(p *Property) bool {
-	if _,ok := t.Properties[p.Name]; ok {
-		return false
-	}
-
-	t.Properties[p.Name] = p
-	return true
+func (t *ClassType) AddProperty(p *Property) {
+	t.Properties = append(t.Properties, p)
 }
 
 //=============================================================================
 
-func (t *ClassType) AddMethod(m Method) bool {
-	if _,ok := t.Methods[m.Id()]; ok {
-		return false
-	}
-
-	t.Methods[m.Id()] = m
-	return true
+func (t *ClassType) AddFunction(f *Function) {
+	t.Functions = append(t.Functions, f)
 }
 
 //=============================================================================
 
-func (t *ClassType) Id() int8 {
-	return IdClass
+func (t *ClassType) Code() int8 {
+	return CodeClass
 }
 
 //=============================================================================
 
 func (t *ClassType) String() string {
-	return "class=("+ t.Name +")"
+	return "class=("+ t.name +")"
+}
+
+//=============================================================================
+//=== Symbol interface
+//=============================================================================
+
+func (t *ClassType) Id() string {
+	return t.name
+}
+
+//=============================================================================
+
+func (t *ClassType) Kind() interfaces.Kind {
+	return interfaces.KindClass
+}
+
+//=============================================================================
+
+func (t *ClassType) Specie() interfaces.Specie {
+	return interfaces.SpecieType
+}
+
+//=============================================================================
+
+func (t *ClassType) InitScope(parent interfaces.Scope) *parser.ParseError {
+	t.classScope = data.NewSymbolTable()
+
+	for _, prop := range t.Properties {
+		if !t.classScope.Define(prop) {
+			return parser.NewParseErrorFromInfo(prop.Info, "property duplicated in class: "+ prop.Id())
+		}
+	}
+
+	for _, f := range t.Functions {
+		if !t.classScope.Define(f) {
+			return parser.NewParseErrorFromInfo(f.Info, "function duplicated in class: "+ f.Id())
+		}
+
+		err := f.InitScope(parent)
+		if err != nil {
+			return err
+		}
+
+		f.SetEmbedder(t)
+	}
+
+	return nil
+}
+
+//=============================================================================
+
+func (t *ClassType) Scope() interfaces.Scope {
+	return t.classScope
 }
 
 //=============================================================================
@@ -93,7 +137,7 @@ func (t *ClassType) String() string {
 //=============================================================================
 
 type Property struct {
-	Name  string
+	name  string
 	Type  Type
 	Info *parser.Info
 }
@@ -102,20 +146,42 @@ type Property struct {
 
 func NewProperty(name string, type_ Type, info *parser.Info) *Property {
 	return &Property{
-		Name: name,
+		name: name,
 		Type: type_,
 		Info: info,
 	}
 }
 
 //=============================================================================
-//===
-//=== Method
-//===
+//=== Symbol interface
 //=============================================================================
 
-type Method interface {
-	Id() string
+func (p *Property) Id() string {
+	return p.name
+}
+
+//=============================================================================
+
+func (p *Property) Kind() interfaces.Kind {
+	return interfaces.KindProperty
+}
+
+//=============================================================================
+
+func (p *Property) Specie() interfaces.Specie {
+	return interfaces.SpecieOther
+}
+
+//=============================================================================
+
+func (p *Property) InitScope(parent interfaces.Scope) *parser.ParseError {
+	return nil
+}
+
+//=============================================================================
+
+func (p *Property) Scope() interfaces.Scope {
+	return nil
 }
 
 //=============================================================================

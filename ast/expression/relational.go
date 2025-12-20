@@ -25,212 +25,144 @@ THE SOFTWARE.
 package expression
 
 import (
+	"errors"
+
+	"github.com/tradalia/sick-engine/core/interfaces"
 	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/core/values"
+	"github.com/tradalia/sick-engine/parser"
 )
 
 //=============================================================================
 //===
-//=== Equal
+//=== Operands
 //===
 //=============================================================================
 
-type EqualExpression struct {
-	left  Expression
-	right Expression
+const (
+	RelOpEqual          = "="
+	RelOpNotEqual       = "<>"
+	RelOpLessThan       = "<"
+	RelOpGreaterThan    = ">"
+	RelOpLessOrEqual    = "<="
+	RelOpGreaterOrEqual = ">="
+)
+
+//=============================================================================
+//===
+//=== Relational
+//===
+//=============================================================================
+
+type RelationalExpression struct {
+	operand  string
+	left     Expression
+	right    Expression
+	info     *parser.Info
 }
 
 //=============================================================================
 
-func NewEqualExpression(left, right Expression) *EqualExpression {
-	return &EqualExpression{
-		left:  left,
-		right: right,
+func NewRelationalExpression(operand string, left, right Expression, info *parser.Info) *RelationalExpression {
+	return &RelationalExpression{
+		operand : operand,
+		left    : left,
+		right   : right,
+		info    : info,
 	}
 }
 
 //=============================================================================
 
-func (e *EqualExpression) Eval() (values.Value,error) {
-	left, err1 := e.left .Eval()
-	right,err2 := e.right.Eval()
-
+func (e *RelationalExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
+	t1, err1 := e.left .ResolveType(scope, embedder, depth)
+	t2, err2 := e.right.ResolveType(scope, embedder, depth)
 	if err1 != nil {
-		return nil,err1
+		return nil, err1
 	}
-
 	if err2 != nil {
-		return nil,err2
+		return nil, err2
 	}
 
-	_ = left == right
-	return nil,nil
-}
+	ok := false
 
-//=============================================================================
-
-func (e *EqualExpression) Type() types.Type {
-	return nil
-}
-
-//=============================================================================
-//===
-//=== Not equal
-//===
-//=============================================================================
-
-type NotEqualExpression struct {
-	left  Expression
-	right Expression
-}
-
-//=============================================================================
-
-func NewNotEqualExpression(left, right Expression) *NotEqualExpression {
-	return &NotEqualExpression{
-		left:  left,
-		right: right,
+	switch e.operand {
+		case RelOpEqual:
+			ok = canEquateTo(t1, t2)
+		case RelOpNotEqual:
+			ok = canEquateTo(t1, t2)
+		case RelOpLessThan:
+			ok = canCompareTo(t1, t2)
+		case RelOpLessOrEqual:
+			ok = canCompareTo(t1, t2)
+		case RelOpGreaterThan:
+			ok = canCompareTo(t1, t2)
+		case RelOpGreaterOrEqual:
+			ok = canCompareTo(t1, t2)
 	}
-}
 
-//=============================================================================
-
-func (e *NotEqualExpression) Eval() (values.Value,error) {
-	return nil,nil
-}
-
-//=============================================================================
-
-func (e *NotEqualExpression) Type() types.Type {
-	return nil
-}
-
-//=============================================================================
-//===
-//=== Less or equal
-//===
-//=============================================================================
-
-type LessOrEqualExpression struct {
-	left  Expression
-	right Expression
-}
-
-//=============================================================================
-
-func (e *LessOrEqualExpression) Eval() (values.Value,error) {
-	return nil,nil
-}
-
-//=============================================================================
-
-func (e *LessOrEqualExpression) Type() types.Type {
-	return nil
-}
-
-//=============================================================================
-
-func NewLessOrEqualExpression(left, right Expression) *LessOrEqualExpression {
-	return &LessOrEqualExpression{
-		left:  left,
-		right: right,
+	if !ok {
+		return nil, errors.New("operand '"+ e.operand +"'s not usable with '" +t1.String() + "' and '" + t2.String() +"'")
 	}
+
+	return types.NewBoolType(),nil
+}
+
+//=============================================================================
+
+func (e *RelationalExpression) Info() *parser.Info {
+	return e.info
 }
 
 //=============================================================================
 //===
-//=== Greater or equal
+//=== Private functions
 //===
 //=============================================================================
 
-type GreaterOrEqualExpression struct {
-	left  Expression
-	right Expression
-}
-
-//=============================================================================
-
-func (e *GreaterOrEqualExpression) Eval() (values.Value,error) {
-	return nil,nil
-}
-
-//=============================================================================
-
-func (e *GreaterOrEqualExpression) Type() types.Type {
-	return nil
-}
-
-//=============================================================================
-
-func NewGreaterOrEqualExpression(left, right Expression) *GreaterOrEqualExpression {
-	return &GreaterOrEqualExpression{
-		left:  left,
-		right: right,
+func canEquateTo(t1,t2 types.Type) bool {
+	if t1.Code() == types.CodeTimeseries || t2.Code() == types.CodeTimeseries {
+		return false
 	}
-}
 
-//=============================================================================
-//===
-//=== Less than
-//===
-//=============================================================================
-
-type LessThanExpression struct {
-	left  Expression
-	right Expression
-}
-
-//=============================================================================
-
-func (e *LessThanExpression) Eval() (values.Value,error) {
-	return nil,nil
-}
-
-//=============================================================================
-
-func (e *LessThanExpression) Type() types.Type {
-	return nil
-}
-
-//=============================================================================
-
-func NewLessThanExpression(left, right Expression) *LessThanExpression {
-	return &LessThanExpression{
-		left:  left,
-		right: right,
+	if t1.Code() == t2.Code() {
+		return true
 	}
-}
 
-//=============================================================================
-//===
-//=== Greater than
-//===
-//=============================================================================
-
-type GreaterThanExpression struct {
-	left  Expression
-	right Expression
-}
-
-//=============================================================================
-
-func (e *GreaterThanExpression) Eval() (values.Value,error) {
-	return nil,nil
-}
-
-//=============================================================================
-
-func (e *GreaterThanExpression) Type() types.Type {
-	return nil
-}
-
-//=============================================================================
-
-func NewGreaterThanExpression(left, right Expression) *GreaterThanExpression {
-	return &GreaterThanExpression{
-		left:  left,
-		right: right,
+	if t1.Code() == types.CodeInt && t2.Code() == types.CodeReal {
+		return true
 	}
+
+	if t1.Code() == types.CodeReal && t2.Code() == types.CodeInt {
+		return true
+	}
+
+	return false
+}
+
+//=============================================================================
+
+func canCompareTo(t1,t2 types.Type) bool {
+	if t1.Code() == types.CodeTimeseries || t2.Code() == types.CodeTimeseries {
+		return false
+	}
+
+	if t1.Code() == types.CodeDate && t2.Code() == types.CodeDate {
+		return true
+	}
+
+	if t1.Code() == types.CodeTime && t2.Code() == types.CodeTime {
+		return true
+	}
+
+	if t1.Code() == types.CodeString && t2.Code() == types.CodeString {
+		return true
+	}
+
+	if (t1.Code() == types.CodeInt || t1.Code() == types.CodeReal) && (t2.Code() == types.CodeInt || t2.Code() == types.CodeReal) {
+		return true
+	}
+
+	return false
 }
 
 //=============================================================================

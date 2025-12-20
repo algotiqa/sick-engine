@@ -26,24 +26,24 @@ package types
 
 //=============================================================================
 //===
-//=== Type IDs
+//=== Type codes
 //===
 //=============================================================================
 
 const (
-	IdInt        =  0
-	IdReal       =  1
-	IdBool       =  2
-	IdString     =  3
-	IdTime       =  4
-	IdDate       =  5
-	IdTimeseries =  6
-	IdEnum       =  7
-	IdClass      =  8
-	IdList       =  9
-	IdMap        = 10
-	IdError      = 11
-	IdToFindOut  = -1
+	CodeInt        =  0
+	CodeReal       =  1
+	CodeBool       =  2
+	CodeString     =  3
+	CodeTime       =  4
+	CodeDate       =  5
+	CodeTimeseries =  6
+	CodeEnum       =  7
+	CodeClass      =  8
+	CodeList       =  9
+	CodeMap        = 10
+	CodeError      = 11
+	CodeToFindOut  = -1
 )
 
 //=============================================================================
@@ -53,7 +53,7 @@ const (
 //=============================================================================
 
 type Type interface {
-	Id()     int8
+	Code()   int8
 	String() string
 }
 

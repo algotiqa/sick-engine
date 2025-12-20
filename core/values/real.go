@@ -25,6 +25,8 @@ THE SOFTWARE.
 package values
 
 import (
+	"strconv"
+
 	"github.com/tradalia/sick-engine/core/types"
 )
 
@@ -68,6 +70,12 @@ func (v *RealValue) Equals(other Value) bool {
 
 func (v *RealValue) LessThan(other Value) bool {
 	return false
+}
+
+//=============================================================================
+
+func (v *RealValue) String() string {
+	return strconv.FormatFloat(v.value, 'f', -1, 64)
 }
 
 //=============================================================================

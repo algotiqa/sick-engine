@@ -25,6 +25,8 @@ THE SOFTWARE.
 package values
 
 import (
+	"strconv"
+
 	"github.com/tradalia/sick-engine/core/types"
 )
 
@@ -68,6 +70,12 @@ func (v *IntValue) Equals(other Value) bool {
 
 func (v *IntValue) LessThan(other Value) bool {
 	return false
+}
+
+//=============================================================================
+
+func (v *IntValue) String() string {
+	return strconv.FormatInt(v.value, 10)
 }
 
 //=============================================================================

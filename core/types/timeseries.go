@@ -30,29 +30,28 @@ package types
 //===
 //=============================================================================
 
-type TimeseriesType struct {
+type TimeSeriesType struct {
+	SubType Type
 }
 
 //=============================================================================
 
-var timeseriesType = &TimeseriesType{}
-
-//=============================================================================
-
-func NewTimeseriesType() *TimeseriesType {
-	return timeseriesType
+func NewTimeSeriesType(t Type) *TimeSeriesType {
+	return &TimeSeriesType{
+		SubType: t,
+	}
 }
 
 //=============================================================================
 
-func (TimeseriesType) Id() int8 {
-	return IdTimeseries
+func (TimeSeriesType) Code() int8 {
+	return CodeTimeseries
 }
 
 //=============================================================================
 
-func (TimeseriesType) String() string {
-	return "timeseries"
+func (TimeSeriesType) String() string {
+	return "timeSeries"
 }
 
 //=============================================================================

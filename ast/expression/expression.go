@@ -25,8 +25,9 @@ THE SOFTWARE.
 package expression
 
 import (
+	"github.com/tradalia/sick-engine/core/interfaces"
 	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/core/values"
+	"github.com/tradalia/sick-engine/parser"
 )
 
 //=============================================================================
@@ -36,8 +37,8 @@ import (
 //=============================================================================
 
 type Expression interface {
-	Eval() (values.Value,error)
-	Type() types.Type
+	ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error)
+	Info() *parser.Info
 }
 
 //=============================================================================

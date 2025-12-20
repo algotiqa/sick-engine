@@ -22,24 +22,42 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package statement
+package data
+
+import (
+	"github.com/tradalia/sick-engine/core/interfaces"
+	"github.com/tradalia/sick-engine/parser"
+)
 
 //=============================================================================
-
-type Statement interface {
-	Execute() error
-}
-
+//===
+//=== Statement block
+//===
 //=============================================================================
 
 type Block struct {
-	Statements []Statement
+	Statements []interfaces.Statement
+	scope      interfaces.Scope
+	embedder   interfaces.Symbol
 }
 
 //=============================================================================
 
-func (b *Block) Add(s Statement) {
+func (b *Block) Add(s interfaces.Statement) {
 	b.Statements = append(b.Statements, s)
+}
+
+//=============================================================================
+
+func (b *Block) InitScope(parent interfaces.Scope) *parser.ParseError {
+	b.scope = parent.Push()
+	return nil
+}
+
+//=============================================================================
+
+func (b *Block) SetEmbedder(embedder interfaces.Symbol) {
+	b.embedder = embedder
 }
 
 //=============================================================================

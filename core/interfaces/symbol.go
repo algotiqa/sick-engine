@@ -22,36 +22,45 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-package types
+package interfaces
 
-//=============================================================================
-//===
-//=== List
-//===
-//=============================================================================
-
-type ListType struct {
-	SubType Type
-}
+import "github.com/tradalia/sick-engine/parser"
 
 //=============================================================================
 
-func NewListType(t Type) *ListType {
-	return &ListType{
-		SubType: t,
-	}
-}
+type Kind int
+
+const (
+	KindConst Kind = iota
+	KindVar
+	KindFunction
+	KindClass
+	KindEnum
+	KindPackage
+	KindEnumItem
+	KindParameter
+	KindProperty
+)
 
 //=============================================================================
 
-func (t *ListType) Code() int8 {
-	return CodeList
-}
+type Specie int
+
+const (
+	SpecieObject Specie = iota
+	SpecieType
+	SpecieOther
+)
 
 //=============================================================================
 
-func (t *ListType) String() string {
-	return "list=("+ t.SubType.String() +")"
+type Symbol interface {
+	Id()       string
+	Kind()     Kind
+	Specie()   Specie
+
+	InitScope(parent Scope) *parser.ParseError
+	Scope() Scope
 }
 
 //=============================================================================

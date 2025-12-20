@@ -58,6 +58,9 @@ type TslParserListener interface {
 	// EnterType is called when entering the type production.
 	EnterType(c *TypeContext)
 
+	// EnterTimeSeriesType is called when entering the timeSeriesType production.
+	EnterTimeSeriesType(c *TimeSeriesTypeContext)
+
 	// EnterListType is called when entering the listType production.
 	EnterListType(c *ListTypeContext)
 
@@ -198,6 +201,9 @@ type TslParserListener interface {
 
 	// ExitType is called when exiting the type production.
 	ExitType(c *TypeContext)
+
+	// ExitTimeSeriesType is called when exiting the timeSeriesType production.
+	ExitTimeSeriesType(c *TimeSeriesTypeContext)
 
 	// ExitListType is called when exiting the listType production.
 	ExitListType(c *ListTypeContext)

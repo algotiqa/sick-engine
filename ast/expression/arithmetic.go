@@ -25,136 +25,120 @@ THE SOFTWARE.
 package expression
 
 import (
+	"errors"
+
+	"github.com/tradalia/sick-engine/core/interfaces"
 	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/core/values"
+	"github.com/tradalia/sick-engine/parser"
 )
 
 //=============================================================================
 //===
-//=== Mult
+//=== Operands
 //===
 //=============================================================================
 
-type MultExpression struct {
-	left  Expression
-	right Expression
-}
-
-//=============================================================================
-
-func (e *MultExpression) Eval() (values.Value,error) {
-	return nil,nil
-}
-
-//=============================================================================
-
-func (e *MultExpression) Type() types.Type {
-	return nil
-}
-
-//=============================================================================
-
-func NewMultExpression(left, right Expression) *MultExpression {
-	return &MultExpression{
-		left:  left,
-		right: right,
-	}
-}
+const (
+	AritOpAdd  = "+"
+	AritOpSub  = "-"
+	AritOpMult = "*"
+	AritOpDiv  = "/"
+)
 
 //=============================================================================
 //===
-//=== Div
+//=== Arithmetic
 //===
 //=============================================================================
 
-type DivExpression struct {
-	left  Expression
-	right Expression
+type ArithmeticExpression struct {
+	operand  string
+	left     Expression
+	right    Expression
+	info     *parser.Info
 }
 
 //=============================================================================
 
-func NewDivExpression(left, right Expression) *DivExpression {
-	return &DivExpression{
-		left:  left,
-		right: right,
+func NewArithmeticExpression(operand string, left, right Expression, info *parser.Info) *ArithmeticExpression {
+	return &ArithmeticExpression{
+		operand : operand,
+		left    : left,
+		right   : right,
+		info    : info,
 	}
 }
 
 //=============================================================================
 
-func (e *DivExpression) Eval() (values.Value,error) {
-	return nil,nil
-}
-
-//=============================================================================
-
-func (e *DivExpression) Type() types.Type {
-	return nil
-}
-
-//=============================================================================
-//===
-//=== Add
-//===
-//=============================================================================
-
-type AddExpression struct {
-	left  Expression
-	right Expression
-}
-
-//=============================================================================
-
-func (e *AddExpression) Eval() (values.Value,error) {
-	return nil,nil
-}
-
-//=============================================================================
-
-func (e *AddExpression) Type() types.Type {
-	return nil
-}
-
-//=============================================================================
-
-func NewAddExpression(left, right Expression) *AddExpression {
-	return &AddExpression{
-		left:  left,
-		right: right,
+func (e *ArithmeticExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
+	t1, err1 := e.left .ResolveType(scope, embedder, depth)
+	t2, err2 := e.right.ResolveType(scope, embedder, depth)
+	if err1 != nil {
+		return nil, err1
 	}
-}
-
-//=============================================================================
-//===
-//=== Sub
-//===
-//=============================================================================
-
-type SubExpression struct {
-	left  Expression
-	right Expression
-}
-
-//=============================================================================
-
-func (e *SubExpression) Eval() (values.Value,error) {
-	return nil,nil
-}
-
-//=============================================================================
-
-func (e *SubExpression) Type() types.Type {
-	return nil
-}
-
-//=============================================================================
-
-func NewSubExpression(left, right Expression) *SubExpression {
-	return &SubExpression{
-		left:  left,
-		right: right,
+	if err2 != nil {
+		return nil, err2
 	}
+
+	if supportsStringify(t1, t2) {
+		return types.NewStringType(), nil
+	}
+
+	t := combineTypes(e.operand, t1, t2)
+	if t == nil {
+		return nil, errors.New("operand types mismatch: '" +t1.String() + "' and '" + t2.String() +"'")
+	}
+
+	return t,nil
+}
+
+//=============================================================================
+
+func (e *ArithmeticExpression) Info() *parser.Info {
+	return e.info
+}
+
+//=============================================================================
+//===
+//=== Private functions
+//===
+//=============================================================================
+
+func supportsStringify(t1, t2 types.Type) bool {
+	if t1.Code() == types.CodeTimeseries || t2.Code() == types.CodeTimeseries {
+		return false
+	}
+
+	return t1.Code() == types.CodeString || t2.Code() == types.CodeString
+}
+
+//=============================================================================
+
+func combineTypes(operand string, t1, t2 types.Type) types.Type {
+	if t1.Code() == types.CodeTimeseries || t2.Code() == types.CodeTimeseries {
+		return nil
+	}
+
+	if t1.Code() == types.CodeInt && t2.Code() == types.CodeInt {
+		return types.NewIntType()
+	}
+
+	if (t1.Code() == types.CodeInt || t1.Code() == types.CodeReal) && (t2.Code() == types.CodeInt || t2.Code() == types.CodeReal) {
+		return types.NewRealType()
+	}
+
+	if operand == AritOpAdd || operand == AritOpSub {
+		if (t1.Code() == types.CodeTime || t1.Code() == types.CodeInt) && (t2.Code() == types.CodeTime || t2.Code() == types.CodeInt) {
+			return types.NewTimeType()
+		}
+
+		if (t1.Code() == types.CodeDate && t2.Code() == types.CodeInt) || (t1.Code() == types.CodeInt && t2.Code() == types.CodeDate) {
+			return types.NewDateType()
+		}
+	}
+
+	return nil
 }
 
 //=============================================================================

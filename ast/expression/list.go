@@ -25,8 +25,11 @@ THE SOFTWARE.
 package expression
 
 import (
+	"errors"
+
+	"github.com/tradalia/sick-engine/core/interfaces"
 	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/core/values"
+	"github.com/tradalia/sick-engine/parser"
 )
 
 //=============================================================================
@@ -36,32 +39,34 @@ import (
 //=============================================================================
 
 type ListExpression struct {
-	Values []Expression
+	Values   []Expression
+	info     *parser.Info
 }
 
 //=============================================================================
 
-func NewListExpression() *ListExpression {
+func NewListExpression(info *parser.Info) *ListExpression {
 	return &ListExpression{
+		info: info,
 	}
 }
 
 //=============================================================================
 
-func (l *ListExpression) AddExpression(e Expression) {
-	l.Values = append(l.Values, e)
+func (e *ListExpression) AddExpression(exp Expression) {
+	e.Values = append(e.Values, exp)
 }
 
 //=============================================================================
 
-func (l *ListExpression) Type() types.Type {
-	return nil
+func (e *ListExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
+	return nil,errors.New("not implemented")
 }
 
 //=============================================================================
 
-func (l *ListExpression) Eval() (values.Value,error) {
-	return nil,nil
+func (e *ListExpression) Info() *parser.Info {
+	return e.info
 }
 
 //=============================================================================

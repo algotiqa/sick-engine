@@ -29,6 +29,7 @@ import (
 
 	"github.com/tradalia/sick-engine/ast/expression"
 	"github.com/tradalia/sick-engine/ast/statement"
+	"github.com/tradalia/sick-engine/core/data"
 	"github.com/tradalia/sick-engine/core/types"
 	"github.com/tradalia/sick-engine/parser"
 	"github.com/tradalia/sick-engine/tool"
@@ -88,9 +89,7 @@ func convertConstants(script *Script, tree []parser.IConstantsDefContext) {
 	for _, cds := range tree {
 		for _,cd := range cds.AllConstantDef() {
 			c := convertConstantDef(cd)
-			if !script.AddConstant(c) {
-				parser.RaiseError(cds.GetParser(), "constant's name already used: "+ c.Name)
-			}
+			script.AddConstant(c)
 		}
 	}
 }
@@ -116,9 +115,7 @@ func convertVariables(script *Script, tree []parser.IVariablesDefContext) {
 	for _, vds := range tree {
 		for _,vd := range vds.AllVariableDef() {
 			v := convertVariableDef(vd)
-			if !script.AddVariable(v) {
-				parser.RaiseError(vd.GetParser(), "variable's name already used: "+ v.Name)
-			}
+			script.AddVariable(v)
 		}
 	}
 }
@@ -143,30 +140,28 @@ func convertVariableDef(tree parser.IVariableDefContext) *Variable {
 func convertFunctions(script *Script, tree []parser.IFunctionDefContext) {
 	for _, fd := range tree {
 		f := convertFunctionDef(fd)
-		if !script.AddFunction(f) {
-			parser.RaiseError(fd.GetParser(), "function's name already used: "+ f.Name)
-		}
+		script.AddFunction(f)
 	}
 }
 
 //=============================================================================
 
-func convertFunctionDef(tree parser.IFunctionDefContext) *Function {
+func convertFunctionDef(tree parser.IFunctionDefContext) *types.Function {
 	name := tree.IDENTIFIER().GetText()
 
 	if !tool.StartsWithLowerCase(name) {
 		parser.RaiseError(tree.GetParser(), "function's name must start with a lowercase character: "+ name)
 	}
 
-	f := NewFunction(name, parser.NewInfo(tree))
+	f := types.NewFunction(name, parser.NewInfo(tree))
 
 	if tree.Class() != nil {
-		fqi := NewFQIdentifier(tree.Class().FqIdentifier())
+		fqi := data.NewFQIdentifier(tree.Class().FqIdentifier())
 		if !tool.StartsWithUpperCase(fqi.Name) {
 			parser.RaiseError(tree.GetParser(), "function's class name must start with an uppercase character: "+ fqi.Name)
 		}
 
-		f.Class = tree.Class().FqIdentifier().GetText()
+		f.Class = fqi
 	}
 
 	convertFunctionParams (f, tree.Parameters())
@@ -178,9 +173,7 @@ func convertFunctionDef(tree parser.IFunctionDefContext) *Function {
 
 //=============================================================================
 
-func convertFunctionParams(f *Function, params parser.IParametersContext) {
-	names := map[string]bool{}
-
+func convertFunctionParams(f *types.Function, params parser.IParametersContext) {
 	for _, pd := range params.AllParameterDecl() {
 		name  := pd.IDENTIFIER().GetText()
 		type_ := pd.Type_()
@@ -189,20 +182,15 @@ func convertFunctionParams(f *Function, params parser.IParametersContext) {
 			parser.RaiseError(params.GetParser(), "function's parameter must start with a lowercase character: "+ name)
 		}
 
-		if _,ok := names[name]; ok {
-			parser.RaiseError(params.GetParser(), "function's parameter name already used: "+ name)
-		}
-
-		names[name] = true
 		t := types.ConvertType(type_)
-		p := NewParam(name,t, parser.NewInfo(pd))
+		p := types.NewParam(name,t, parser.NewInfo(pd))
 		f.AddParam(p)
 	}
 }
 
 //=============================================================================
 
-func convertFunctionResults(f *Function, results parser.IResultsContext) {
+func convertFunctionResults(f *types.Function, results parser.IResultsContext) {
 	if results != nil {
 		for _,r := range results.AllType_() {
 			t := types.ConvertType(r)
@@ -218,9 +206,7 @@ func convertFunctionResults(f *Function, results parser.IResultsContext) {
 func convertEnums(script *Script, tree []parser.IEnumDefContext) {
 	for _, ed := range tree {
 		e := convertEnumDef(ed)
-		if !script.AddEnum(e) {
-			parser.RaiseError(ed.GetParser(), "enum's name already used: "+ e.Name)
-		}
+		script.AddEnum(e)
 	}
 }
 
@@ -239,9 +225,7 @@ func convertEnumDef(tree parser.IEnumDefContext) *types.EnumType {
 
 	for _, ei := range tree.AllEnumItem() {
 		i := convertEnumItem(ei)
-		if !e.AddItem(i) {
-			parser.RaiseError(tree.GetParser(), "enum's item already used: "+ i.Name)
-		}
+		e.AddItem(i)
 
 		if i.Code != -1 {
 			countInts++
@@ -307,9 +291,7 @@ func convertEnumItem(tree parser.IEnumItemContext) *types.EnumItem {
 func convertClasses(script *Script, tree []parser.IClassDefContext) {
 	for _, cd := range tree {
 		c := convertClassDef(cd)
-		if !script.AddClass(c) {
-			parser.RaiseError(cd.GetParser(), "class's name already used: "+ c.Name)
-		}
+		script.AddClass(c)
 	}
 }
 
@@ -324,9 +306,7 @@ func convertClassDef(tree parser.IClassDefContext) *types.ClassType {
 	}
 
 	for _, p := range tree.AllProperty() {
-		if !c.AddProperty(convertProperty(p)) {
-			parser.RaiseError(p.GetParser(), "class's property already used: "+ c.Name)
-		}
+		c.AddProperty(convertProperty(p))
 	}
 
 	return c

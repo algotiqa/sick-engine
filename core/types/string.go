@@ -45,8 +45,8 @@ func NewStringType() *StringType {
 
 //=============================================================================
 
-func (StringType) Id() int8 {
-	return IdString
+func (StringType) Code() int8 {
+	return CodeString
 }
 
 //=============================================================================

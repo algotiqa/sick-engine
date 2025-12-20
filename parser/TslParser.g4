@@ -120,19 +120,23 @@ type
     | STRING
     | TIME
     | DATE
-    | TIMESERIES
+    | timeSeriesType
     | fqIdentifier
     | ERROR
     | listType
     | mapType
     ;
 
+timeSeriesType
+    : TIMESERIES ( L_PAREN type R_PAREN )?
+    ;
+
 listType
-    : LIST OF L_PAREN type R_PAREN
+    : LIST L_PAREN type R_PAREN
     ;
 
 mapType
-    : MAP OF L_PAREN keyType COMMA type R_PAREN
+    : MAP L_PAREN keyType COMMA type R_PAREN
     ;
 
 keyType
@@ -230,10 +234,11 @@ expressionInParenthesis
 
 chainedExpression
     : ( THIS DOT )? chainItem ( DOT chainItem )*
+    | NEW fqIdentifier paramsExpression ( DOT chainItem )*
     ;
 
 chainItem
-    : IDENTIFIER ( paramsExpression | accessorExpression )?
+    : IDENTIFIER paramsExpression? accessorExpression?
     ;
 
 paramsExpression
