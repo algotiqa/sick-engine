@@ -42,7 +42,7 @@ func NewCallStack() *CallStack {
 		records: make([]*CallRecord, 1024),
 	}
 
-	cs.records = append(cs.records, NewCallRecord())
+	cs.records[0] = NewCallRecord()
 	return cs
 }
 
