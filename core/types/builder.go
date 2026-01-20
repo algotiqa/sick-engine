@@ -25,8 +25,8 @@ THE SOFTWARE.
 package types
 
 import (
-	"github.com/tradalia/sick-engine/core/data"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/core/data"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -37,13 +37,13 @@ import (
 
 func ConvertType(tree parser.ITypeContext) Type {
 	if tree.ListType() != nil {
-		lt      := tree.ListType()
+		lt := tree.ListType()
 		subType := ConvertType(lt.Type_())
 		return NewListType(subType)
 	}
 
 	if tree.MapType() != nil {
-		mt      := tree.MapType()
+		mt := tree.MapType()
 		keyType := ConvertKeyType(mt.KeyType())
 		valType := ConvertType(mt.Type_())
 		return NewMapType(keyType, valType)

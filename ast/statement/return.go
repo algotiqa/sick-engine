@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 package statement
 
-import "github.com/tradalia/sick-engine/ast/expression"
+import "github.com/algotiqa/tiq-engine/ast/expression"
 
 //=============================================================================
 //===
@@ -39,8 +39,7 @@ type ReturnStatement struct {
 //=============================================================================
 
 func NewReturnStatement() *ReturnStatement {
-	return &ReturnStatement{
-	}
+	return &ReturnStatement{}
 }
 
 //=============================================================================

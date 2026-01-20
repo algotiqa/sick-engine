@@ -22,10 +22,10 @@ THE SOFTWARE.
 */
 //=============================================================================
 
-parser grammar TslParser;
+parser grammar TiqParser;
 
 options {
-    tokenVocab = TslLexer;
+    tokenVocab = TiqLexer;
 }
 
 //=============================================================================

@@ -27,12 +27,12 @@ package ast
 import (
 	"strconv"
 
-	"github.com/tradalia/sick-engine/ast/expression"
-	"github.com/tradalia/sick-engine/ast/statement"
-	"github.com/tradalia/sick-engine/core/data"
-	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/parser"
-	"github.com/tradalia/sick-engine/tool"
+	"github.com/algotiqa/tiq-engine/ast/expression"
+	"github.com/algotiqa/tiq-engine/ast/statement"
+	"github.com/algotiqa/tiq-engine/core/data"
+	"github.com/algotiqa/tiq-engine/core/types"
+	"github.com/algotiqa/tiq-engine/parser"
+	"github.com/algotiqa/tiq-engine/tool"
 )
 
 //=============================================================================
@@ -55,8 +55,8 @@ func Build(tree parser.IScriptContext) *Script {
 	convertConstants(script, tree.AllConstantsDef())
 	convertVariables(script, tree.AllVariablesDef())
 	convertFunctions(script, tree.AllFunctionDef())
-	convertEnums    (script, tree.AllEnumDef())
-	convertClasses  (script, tree.AllClassDef())
+	convertEnums(script, tree.AllEnumDef())
+	convertClasses(script, tree.AllClassDef())
 
 	return script
 }
@@ -72,7 +72,7 @@ func convertPackage(tree parser.IPackageDefContext) string {
 		id := tree.IDENTIFIER().GetText()
 
 		if !tool.StartsWithLowerCase(id) {
-			parser.RaiseError(tree.GetParser(), "package's name must start with a lowercase character: "+ id)
+			parser.RaiseError(tree.GetParser(), "package's name must start with a lowercase character: "+id)
 		}
 
 		return id
@@ -87,7 +87,7 @@ func convertPackage(tree parser.IPackageDefContext) string {
 
 func convertConstants(script *Script, tree []parser.IConstantsDefContext) {
 	for _, cds := range tree {
-		for _,cd := range cds.AllConstantDef() {
+		for _, cd := range cds.AllConstantDef() {
 			c := convertConstantDef(cd)
 			script.AddConstant(c)
 		}
@@ -97,11 +97,11 @@ func convertConstants(script *Script, tree []parser.IConstantsDefContext) {
 //=============================================================================
 
 func convertConstantDef(tree parser.IConstantDefContext) *Constant {
-	name  := tree.IDENTIFIER().GetText()
+	name := tree.IDENTIFIER().GetText()
 	value := tree.Expression()
 
 	if !tool.StartsWithUpperCase(name) {
-		parser.RaiseError(tree.GetParser(), "constant's name must start with an uppercase character: "+ name)
+		parser.RaiseError(tree.GetParser(), "constant's name must start with an uppercase character: "+name)
 	}
 
 	return NewConstant(name, expression.ConvertExpression(value), parser.NewInfo(tree))
@@ -113,7 +113,7 @@ func convertConstantDef(tree parser.IConstantDefContext) *Constant {
 
 func convertVariables(script *Script, tree []parser.IVariablesDefContext) {
 	for _, vds := range tree {
-		for _,vd := range vds.AllVariableDef() {
+		for _, vd := range vds.AllVariableDef() {
 			v := convertVariableDef(vd)
 			script.AddVariable(v)
 		}
@@ -123,11 +123,11 @@ func convertVariables(script *Script, tree []parser.IVariablesDefContext) {
 //=============================================================================
 
 func convertVariableDef(tree parser.IVariableDefContext) *Variable {
-	name  := tree.IDENTIFIER().GetText()
+	name := tree.IDENTIFIER().GetText()
 	value := tree.Expression()
 
 	if !tool.StartsWithLowerCase(name) {
-		parser.RaiseError(tree.GetParser(), "variable's name must start with a lowercase character: "+ name)
+		parser.RaiseError(tree.GetParser(), "variable's name must start with a lowercase character: "+name)
 	}
 
 	return NewVariable(name, expression.ConvertExpression(value), parser.NewInfo(tree))
@@ -150,7 +150,7 @@ func convertFunctionDef(tree parser.IFunctionDefContext) *types.Function {
 	name := tree.IDENTIFIER().GetText()
 
 	if !tool.StartsWithLowerCase(name) {
-		parser.RaiseError(tree.GetParser(), "function's name must start with a lowercase character: "+ name)
+		parser.RaiseError(tree.GetParser(), "function's name must start with a lowercase character: "+name)
 	}
 
 	f := types.NewFunction(name, parser.NewInfo(tree))
@@ -158,13 +158,13 @@ func convertFunctionDef(tree parser.IFunctionDefContext) *types.Function {
 	if tree.Class() != nil {
 		fqi := data.NewFQIdentifier(tree.Class().FqIdentifier())
 		if !tool.StartsWithUpperCase(fqi.Name) {
-			parser.RaiseError(tree.GetParser(), "function's class name must start with an uppercase character: "+ fqi.Name)
+			parser.RaiseError(tree.GetParser(), "function's class name must start with an uppercase character: "+fqi.Name)
 		}
 
 		f.Class = fqi
 	}
 
-	convertFunctionParams (f, tree.Parameters())
+	convertFunctionParams(f, tree.Parameters())
 	convertFunctionResults(f, tree.Results())
 	f.Block = statement.ConvertBlock(tree.Block())
 
@@ -175,15 +175,15 @@ func convertFunctionDef(tree parser.IFunctionDefContext) *types.Function {
 
 func convertFunctionParams(f *types.Function, params parser.IParametersContext) {
 	for _, pd := range params.AllParameterDecl() {
-		name  := pd.IDENTIFIER().GetText()
+		name := pd.IDENTIFIER().GetText()
 		type_ := pd.Type_()
 
 		if !tool.StartsWithLowerCase(name) {
-			parser.RaiseError(params.GetParser(), "function's parameter must start with a lowercase character: "+ name)
+			parser.RaiseError(params.GetParser(), "function's parameter must start with a lowercase character: "+name)
 		}
 
 		t := types.ConvertType(type_)
-		p := types.NewParam(name,t, parser.NewInfo(pd))
+		p := types.NewParam(name, t, parser.NewInfo(pd))
 		f.AddParam(p)
 	}
 }
@@ -192,7 +192,7 @@ func convertFunctionParams(f *types.Function, params parser.IParametersContext) 
 
 func convertFunctionResults(f *types.Function, results parser.IResultsContext) {
 	if results != nil {
-		for _,r := range results.AllType_() {
+		for _, r := range results.AllType_() {
 			t := types.ConvertType(r)
 			f.AddReturnType(t)
 		}
@@ -217,11 +217,11 @@ func convertEnumDef(tree parser.IEnumDefContext) *types.EnumType {
 	e := types.NewEnumType(name, true, parser.NewInfo(tree))
 
 	if !tool.StartsWithUpperCase(name) {
-		parser.RaiseError(tree.GetParser(), "enum's name must start with an uppercase character: "+ name)
+		parser.RaiseError(tree.GetParser(), "enum's name must start with an uppercase character: "+name)
 	}
 
 	countInts := 0
-	countStr  := 0
+	countStr := 0
 
 	for _, ei := range tree.AllEnumItem() {
 		i := convertEnumItem(ei)
@@ -237,10 +237,10 @@ func convertEnumDef(tree parser.IEnumDefContext) *types.EnumType {
 	}
 
 	badInts := countInts > 0 && countInts != e.Size()
-	badStr  := countStr  > 0 && countStr  != e.Size()
+	badStr := countStr > 0 && countStr != e.Size()
 
 	if badInts && badStr {
-		parser.RaiseError(tree.GetParser(), "mixing integers and strings in enum: "+ name)
+		parser.RaiseError(tree.GetParser(), "mixing integers and strings in enum: "+name)
 	}
 
 	if countInts == 0 && countStr == 0 {
@@ -255,12 +255,12 @@ func convertEnumDef(tree parser.IEnumDefContext) *types.EnumType {
 //=============================================================================
 
 func convertEnumItem(tree parser.IEnumItemContext) *types.EnumItem {
-	name  := tree.IDENTIFIER().GetText()
-	code  := -1
+	name := tree.IDENTIFIER().GetText()
+	code := -1
 	value := ""
 
 	if !tool.StartsWithUpperCase(name) {
-		parser.RaiseError(tree.GetParser(), "enum item's name must start with an uppercase character: "+ name)
+		parser.RaiseError(tree.GetParser(), "enum item's name must start with an uppercase character: "+name)
 	}
 
 	enumVal := tree.EnumValue()
@@ -269,16 +269,16 @@ func convertEnumItem(tree parser.IEnumItemContext) *types.EnumItem {
 		strValue := enumVal.STRING_VALUE()
 
 		if intValue != nil {
-			iValue,err := strconv.Atoi(intValue.GetText())
+			iValue, err := strconv.Atoi(intValue.GetText())
 			if err != nil {
-				parser.RaiseError(tree.GetParser(), "Invalid integer value for enum : " + intValue.GetText())
+				parser.RaiseError(tree.GetParser(), "Invalid integer value for enum : "+intValue.GetText())
 			}
 
 			code = iValue
 		}
 		if strValue != nil {
 			text := strValue.GetText()
-			value = text[1:len(text)-1]
+			value = text[1 : len(text)-1]
 		}
 	}
 	return types.NewEnumItem(name, code, value)
@@ -302,7 +302,7 @@ func convertClassDef(tree parser.IClassDefContext) *types.ClassType {
 	c := types.NewClassType(name, parser.NewInfo(tree))
 
 	if !tool.StartsWithUpperCase(name) {
-		parser.RaiseError(tree.GetParser(), "class's name must start with an uppercase character: "+ name)
+		parser.RaiseError(tree.GetParser(), "class's name must start with an uppercase character: "+name)
 	}
 
 	for _, p := range tree.AllProperty() {
@@ -315,16 +315,16 @@ func convertClassDef(tree parser.IClassDefContext) *types.ClassType {
 //=============================================================================
 
 func convertProperty(tree parser.IPropertyContext) *types.Property {
-	name  := tree.IDENTIFIER().GetText()
+	name := tree.IDENTIFIER().GetText()
 	type_ := tree.Type_()
 
 	if !tool.StartsWithLowerCase(name) {
-		parser.RaiseError(tree.GetParser(), "class's property must start with a lowercase character: "+ name)
+		parser.RaiseError(tree.GetParser(), "class's property must start with a lowercase character: "+name)
 	}
 
 	t := types.ConvertType(type_)
 
-	return types.NewProperty(name,t, parser.NewInfo(tree))
+	return types.NewProperty(name, t, parser.NewInfo(tree))
 }
 
 //=============================================================================

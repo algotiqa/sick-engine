@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 package statement
 
-import "github.com/tradalia/sick-engine/ast/expression"
+import "github.com/algotiqa/tiq-engine/ast/expression"
 
 //=============================================================================
 //===

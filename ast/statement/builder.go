@@ -27,12 +27,12 @@ package statement
 import (
 	"strconv"
 
-	"github.com/tradalia/sick-engine/ast/expression"
-	"github.com/tradalia/sick-engine/core/data"
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/parser"
-	"github.com/tradalia/sick-engine/tool"
+	"github.com/algotiqa/tiq-engine/ast/expression"
+	"github.com/algotiqa/tiq-engine/core/data"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/core/types"
+	"github.com/algotiqa/tiq-engine/parser"
+	"github.com/algotiqa/tiq-engine/tool"
 )
 
 //=============================================================================
@@ -44,14 +44,14 @@ import (
 func ConvertBlock(tree parser.IBlockContext) *data.Block {
 	block := &data.Block{}
 
-	for _,stmt := range tree.AllStatement() {
+	for _, stmt := range tree.AllStatement() {
 		varsDecl := stmt.VarsDeclaration()
 		varsAss := stmt.VarsAssignmentOrFunctionCall()
-		ifStmt  := stmt.IfStatement()
+		ifStmt := stmt.IfStatement()
 		retStmt := stmt.ReturnStatement()
 
 		if varsDecl != nil {
-			for _,va := range varsDecl.AllVarDeclaration() {
+			for _, va := range varsDecl.AllVarDeclaration() {
 				block.Add(convertVarDeclaration(va))
 			}
 		} else if varsAss != nil {
@@ -74,12 +74,12 @@ func ConvertBlock(tree parser.IBlockContext) *data.Block {
 
 func convertVarDeclaration(tree parser.IVarDeclarationContext) *VarDeclaration {
 	name := tree.IDENTIFIER().GetText()
-	if ! tool.StartsWithLowerCase(name) {
-		parser.RaiseError(tree.GetParser(), "Variables must be in lowercase: "+ name)
+	if !tool.StartsWithLowerCase(name) {
+		parser.RaiseError(tree.GetParser(), "Variables must be in lowercase: "+name)
 	}
 
 	var type_ types.Type
-	var expr  expression.Expression
+	var expr expression.Expression
 
 	if tree.Type_() != nil {
 		type_ = types.ConvertType(tree.Type_())
@@ -90,7 +90,7 @@ func convertVarDeclaration(tree parser.IVarDeclarationContext) *VarDeclaration {
 	}
 
 	if type_ == nil && expr == nil {
-		parser.RaiseError(tree.GetParser(), "variable declaration requires either type or value: "+ name)
+		parser.RaiseError(tree.GetParser(), "variable declaration requires either type or value: "+name)
 	}
 
 	return NewVarDeclaration(name, type_, expr)
@@ -99,8 +99,8 @@ func convertVarDeclaration(tree parser.IVarDeclarationContext) *VarDeclaration {
 //=============================================================================
 
 func convertVarAssignmentOrFunctionCall(tree parser.IVarsAssignmentOrFunctionCallContext) []interfaces.Statement {
-	var chains      []*expression.ChainedExpression
-	var expressions [] expression.Expression
+	var chains []*expression.ChainedExpression
+	var expressions []expression.Expression
 
 	//--- Collect identifiers
 
@@ -122,7 +122,7 @@ func convertVarAssignmentOrFunctionCall(tree parser.IVarsAssignmentOrFunctionCal
 	var vas []interfaces.Statement
 
 	if tree.EQUAL() == nil {
-		for _,chain := range chains {
+		for _, chain := range chains {
 			va := NewFunctionCallStatement(chain)
 			vas = append(vas, va)
 		}
@@ -133,7 +133,7 @@ func convertVarAssignmentOrFunctionCall(tree parser.IVarsAssignmentOrFunctionCal
 	//--- Case 2: we can split into several simple assignments
 
 	if len(chains) == len(expressions) {
-		for i,chain := range chains {
+		for i, chain := range chains {
 			va := NewVarAssignment(chain, expressions[i])
 			vas = append(vas, va)
 		}
@@ -145,7 +145,7 @@ func convertVarAssignmentOrFunctionCall(tree parser.IVarsAssignmentOrFunctionCal
 
 	if len(expressions) != 1 {
 		parser.RaiseError(tree.GetParser(), "identifiers don't match expressions: chains="+
-			strconv.Itoa(len(chains)) +", expr="+
+			strconv.Itoa(len(chains))+", expr="+
 			strconv.Itoa(len(expressions)))
 	}
 
@@ -153,13 +153,13 @@ func convertVarAssignmentOrFunctionCall(tree parser.IVarsAssignmentOrFunctionCal
 	switch expr.(type) {
 	case *expression.ChainedExpression:
 		fc := expr.(*expression.ChainedExpression)
-		vas = append (vas, NewFunctionCallAssignment(chains, fc))
+		vas = append(vas, NewFunctionCallAssignment(chains, fc))
 		return vas
 	}
 
 	//--- Case 4: same expression cloned to several identifiers
 
-	for _,chain := range chains {
+	for _, chain := range chains {
 		va := NewVarAssignment(chain, expressions[0])
 		vas = append(vas, va)
 	}
@@ -170,20 +170,20 @@ func convertVarAssignmentOrFunctionCall(tree parser.IVarsAssignmentOrFunctionCal
 //=============================================================================
 
 func convertIfStatement(tree parser.IIfStatementContext) *IfStatement {
-	is    := NewIfStatement()
-	cond  := expression.ConvertExpression(tree.Expression())
+	is := NewIfStatement()
+	cond := expression.ConvertExpression(tree.Expression())
 	block := ConvertBlock(tree.Block())
 	is.AddConditionalBlock(NewConditionalBlock(cond, block))
 
 	for _, eib := range tree.AllElseIfBlock() {
-		cond  = expression.ConvertExpression(eib.Expression())
+		cond = expression.ConvertExpression(eib.Expression())
 		block = ConvertBlock(eib.Block())
 
 		is.AddConditionalBlock(NewConditionalBlock(cond, block))
 	}
 
 	if tree.ElseBlock() != nil {
-		cond  = nil
+		cond = nil
 		block = ConvertBlock(tree.ElseBlock().Block())
 
 		is.AddConditionalBlock(NewConditionalBlock(cond, block))

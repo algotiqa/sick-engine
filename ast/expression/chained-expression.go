@@ -28,10 +28,10 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/tradalia/sick-engine/core/data"
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/core/data"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/core/types"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -51,11 +51,11 @@ type ChainedExpression struct {
 
 //=============================================================================
 
-func NewChainedExpression(hasThis bool, hasNew bool,info *parser.Info) *ChainedExpression {
+func NewChainedExpression(hasThis bool, hasNew bool, info *parser.Info) *ChainedExpression {
 	return &ChainedExpression{
-		HasThis : hasThis,
-		HasNew  : hasNew,
-		info    : info,
+		HasThis: hasThis,
+		HasNew:  hasNew,
+		info:    info,
 	}
 }
 
@@ -133,7 +133,7 @@ func (e *ChainedExpression) resolveWithNew(scope interfaces.Scope, embedder inte
 func (e *ChainedExpression) resolvePlain(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
 	ci := e.Chain[0]
 
-	sym,err := e.resolveChainItem(ci, scope, nil, depth)
+	sym, err := e.resolveChainItem(ci, scope, nil, depth)
 	if err != nil {
 		return nil, err
 	}
@@ -150,21 +150,20 @@ func (e *ChainedExpression) resolvePlain(scope interfaces.Scope, embedder interf
 
 //=============================================================================
 
-func (e *ChainedExpression) resolveChainType(prefix,embedder interfaces.Symbol, index int, depth int) (types.Type, error) {
-	for i:=index; i<len(e.Chain); i++ {
+func (e *ChainedExpression) resolveChainType(prefix, embedder interfaces.Symbol, index int, depth int) (types.Type, error) {
+	for i := index; i < len(e.Chain); i++ {
 		item := e.Chain[i]
 
-		sym,err := e.resolveChainItem(item, scope, embedder, depth)
-
+		sym, err := e.resolveChainItem(item, scope, embedder, depth)
 
 		s := scope.Resolve(item.Name)
 		if s == nil {
-			return nil, errors.New("'"+ item.Name + "' was not found")
+			return nil, errors.New("'" + item.Name + "' was not found")
 		}
 
 	}
 
-	return nil,nil
+	return nil, nil
 }
 
 //=============================================================================
@@ -178,20 +177,20 @@ func (e *ChainedExpression) resolveChainItem(ci *ChainItem, scope interfaces.Sco
 
 		sb.WriteString("|")
 
-		for _,p := range ci.Params {
+		for _, p := range ci.Params {
 			sb.WriteString("|")
-			t,err := p.ResolveType(scope, embedder, depth)
+			t, err := p.ResolveType(scope, embedder, depth)
 			if err != nil {
-				return nil,err
+				return nil, err
 			}
 			sb.WriteString(t.String())
 		}
 	}
 
 	name := sb.String()
-	sym  := scope.Resolve(name)
+	sym := scope.Resolve(name)
 
-	return sym,nil
+	return sym, nil
 }
 
 //=============================================================================
@@ -210,9 +209,9 @@ type ChainItem struct {
 
 func NewChainItem(name string, accessor Expression, params []Expression) *ChainItem {
 	return &ChainItem{
-		Name    : name,
+		Name:     name,
 		Accessor: accessor,
-		Params  : params,
+		Params:   params,
 	}
 }
 

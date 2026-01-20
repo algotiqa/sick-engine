@@ -25,11 +25,11 @@ THE SOFTWARE.
 package runtime
 
 import (
-	"github.com/tradalia/sick-engine/ast"
-	"github.com/tradalia/sick-engine/core/data"
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/ast"
+	"github.com/algotiqa/tiq-engine/core/data"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/core/types"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -64,23 +64,23 @@ func (e *Environment) AddScript(s *ast.Script) *parser.ParseErrors {
 	pes := parser.NewParseErrors()
 	pac := e.getOrCreatePackage(s.PackageName)
 
-	for _,c := range s.Constants {
+	for _, c := range s.Constants {
 		e.addConstant(pac, c, pes)
 	}
 
-	for _,v := range s.Variables {
+	for _, v := range s.Variables {
 		e.addVariable(pac, v, pes)
 	}
 
-	for _,f := range s.Functions {
+	for _, f := range s.Functions {
 		e.addFunction(pac, f, pes)
 	}
 
-	for _,en := range s.Enums {
+	for _, en := range s.Enums {
 		e.addEnum(pac, en, pes)
 	}
 
-	for _,c := range s.Classes {
+	for _, c := range s.Classes {
 		e.addClass(pac, c, pes)
 	}
 
@@ -124,7 +124,7 @@ func (e *Environment) getOrCreatePackage(name string) *Package {
 
 func (e *Environment) addConstant(pack *Package, c *ast.Constant, pes *parser.ParseErrors) {
 	if !pack.scope.Define(c) {
-		pe := parser.NewParseErrorFromInfo(c.Info, "constant name already used: " + c.Id())
+		pe := parser.NewParseErrorFromInfo(c.Info, "constant name already used: "+c.Id())
 		pes.AddError(pe)
 		return
 	}
@@ -134,7 +134,7 @@ func (e *Environment) addConstant(pack *Package, c *ast.Constant, pes *parser.Pa
 
 func (e *Environment) addVariable(pack *Package, v *ast.Variable, pes *parser.ParseErrors) {
 	if !pack.scope.Define(v) {
-		pe := parser.NewParseErrorFromInfo(v.Info, "variable name already used: " + v.Id())
+		pe := parser.NewParseErrorFromInfo(v.Info, "variable name already used: "+v.Id())
 		pes.AddError(pe)
 		return
 	}
@@ -154,7 +154,7 @@ func (e *Environment) addFunction(pack *Package, f *types.Function, pes *parser.
 		//--- Function is standalone
 
 		if !pack.scope.Define(f) {
-			pe := parser.NewParseErrorFromInfo(f.Info, "function name already used: " + f.Id())
+			pe := parser.NewParseErrorFromInfo(f.Info, "function name already used: "+f.Id())
 			pes.AddError(pe)
 			return
 		}
@@ -165,7 +165,7 @@ func (e *Environment) addFunction(pack *Package, f *types.Function, pes *parser.
 
 func (e *Environment) addEnum(pack *Package, en *types.EnumType, pes *parser.ParseErrors) {
 	if !pack.scope.Define(en) {
-		pe := parser.NewParseErrorFromInfo(en.Info, "enum name already used: " + en.Id())
+		pe := parser.NewParseErrorFromInfo(en.Info, "enum name already used: "+en.Id())
 		pes.AddError(pe)
 		return
 	}
@@ -175,7 +175,7 @@ func (e *Environment) addEnum(pack *Package, en *types.EnumType, pes *parser.Par
 
 func (e *Environment) addClass(pack *Package, c *types.ClassType, pes *parser.ParseErrors) {
 	if !pack.scope.Define(c) {
-		pe := parser.NewParseErrorFromInfo(c.Info, "class name already used: " + c.Id())
+		pe := parser.NewParseErrorFromInfo(c.Info, "class name already used: "+c.Id())
 		pes.AddError(pe)
 		return
 	}
@@ -191,10 +191,10 @@ func (e *Environment) addClass(pack *Package, c *types.ClassType, pes *parser.Pa
 //=== Move functions to proper classes if they are methods
 //=============================================================================
 
-func (e *Environment) assignMethodsToClasses() *parser.ParseError{
+func (e *Environment) assignMethodsToClasses() *parser.ParseError {
 	for p := range e.scope.AllSymbols() {
 		pack := p.(*Package)
-		err  := pack.AssignMethodsToClasses()
+		err := pack.AssignMethodsToClasses()
 		if err != nil {
 			return err
 		}
@@ -226,7 +226,7 @@ func (e *Environment) convertToFindOutTypes() *parser.ParseError {
 			if s.Kind() == interfaces.KindClass {
 				c := s.(*types.ClassType)
 				for _, p := range c.Properties {
-					p.Type,err = e.resolveType(pack.scope, p.Type)
+					p.Type, err = e.resolveType(pack.scope, p.Type)
 					if err != nil {
 						return err
 					}
@@ -250,7 +250,7 @@ func (e *Environment) resolveFunctionTypes(scope interfaces.Scope, f *types.Func
 	var err *parser.ParseError
 
 	for _, p := range f.Params {
-		p.Type,err = e.resolveType(scope, p.Type)
+		p.Type, err = e.resolveType(scope, p.Type)
 		if err != nil {
 			return err
 		}
@@ -271,16 +271,16 @@ func (e *Environment) resolveFunctionTypes(scope interfaces.Scope, f *types.Func
 
 func (e *Environment) resolveType(scope interfaces.Scope, t types.Type) (types.Type, *parser.ParseError) {
 	switch t.(type) {
-		case *types.ToFindOutType:
-			at := t.(*types.ToFindOutType)
-			rt := e.searchType(scope, at.Name)
-			if rt == nil {
-				return t,parser.NewParseErrorFromInfo(at.Info, "can't resolve type: " + at.Name.String())
-			}
-			return rt,nil
+	case *types.ToFindOutType:
+		at := t.(*types.ToFindOutType)
+		rt := e.searchType(scope, at.Name)
+		if rt == nil {
+			return t, parser.NewParseErrorFromInfo(at.Info, "can't resolve type: "+at.Name.String())
+		}
+		return rt, nil
 	}
 
-	return t,nil
+	return t, nil
 }
 
 //=============================================================================
@@ -329,11 +329,11 @@ func (e *Environment) resolveGlobalObjectTypes() *parser.ParseError {
 
 	for s := range e.scope.AllSymbols() {
 		if s.Kind() == interfaces.KindConst {
-			c   := s.(*ast.Constant)
+			c := s.(*ast.Constant)
 			err := c.SetupType(e.scope, MaxResolutionDepth)
 
 			if err != nil {
-				return parser.NewParseErrorFromInfo(c.Info, "cannot resolve type for constant '"+ c.Id() +"' : "+ err.Error())
+				return parser.NewParseErrorFromInfo(c.Info, "cannot resolve type for constant '"+c.Id()+"' : "+err.Error())
 			}
 		}
 	}
@@ -342,11 +342,11 @@ func (e *Environment) resolveGlobalObjectTypes() *parser.ParseError {
 
 	for s := range e.scope.AllSymbols() {
 		if s.Kind() == interfaces.KindVar {
-			v   := s.(*ast.Variable)
+			v := s.(*ast.Variable)
 			err := v.SetupType(e.scope, MaxResolutionDepth)
 
 			if err != nil {
-				return parser.NewParseErrorFromInfo(v.Info, "cannot resolve type for constant '"+ v.Id() +"' : "+ err.Error())
+				return parser.NewParseErrorFromInfo(v.Info, "cannot resolve type for constant '"+v.Id()+"' : "+err.Error())
 			}
 		}
 	}

@@ -27,9 +27,9 @@ package expression
 import (
 	"errors"
 
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/core/types"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -54,27 +54,27 @@ const (
 //=============================================================================
 
 type RelationalExpression struct {
-	operand  string
-	left     Expression
-	right    Expression
-	info     *parser.Info
+	operand string
+	left    Expression
+	right   Expression
+	info    *parser.Info
 }
 
 //=============================================================================
 
 func NewRelationalExpression(operand string, left, right Expression, info *parser.Info) *RelationalExpression {
 	return &RelationalExpression{
-		operand : operand,
-		left    : left,
-		right   : right,
-		info    : info,
+		operand: operand,
+		left:    left,
+		right:   right,
+		info:    info,
 	}
 }
 
 //=============================================================================
 
 func (e *RelationalExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
-	t1, err1 := e.left .ResolveType(scope, embedder, depth)
+	t1, err1 := e.left.ResolveType(scope, embedder, depth)
 	t2, err2 := e.right.ResolveType(scope, embedder, depth)
 	if err1 != nil {
 		return nil, err1
@@ -86,25 +86,25 @@ func (e *RelationalExpression) ResolveType(scope interfaces.Scope, embedder inte
 	ok := false
 
 	switch e.operand {
-		case RelOpEqual:
-			ok = canEquateTo(t1, t2)
-		case RelOpNotEqual:
-			ok = canEquateTo(t1, t2)
-		case RelOpLessThan:
-			ok = canCompareTo(t1, t2)
-		case RelOpLessOrEqual:
-			ok = canCompareTo(t1, t2)
-		case RelOpGreaterThan:
-			ok = canCompareTo(t1, t2)
-		case RelOpGreaterOrEqual:
-			ok = canCompareTo(t1, t2)
+	case RelOpEqual:
+		ok = canEquateTo(t1, t2)
+	case RelOpNotEqual:
+		ok = canEquateTo(t1, t2)
+	case RelOpLessThan:
+		ok = canCompareTo(t1, t2)
+	case RelOpLessOrEqual:
+		ok = canCompareTo(t1, t2)
+	case RelOpGreaterThan:
+		ok = canCompareTo(t1, t2)
+	case RelOpGreaterOrEqual:
+		ok = canCompareTo(t1, t2)
 	}
 
 	if !ok {
-		return nil, errors.New("operand '"+ e.operand +"'s not usable with '" +t1.String() + "' and '" + t2.String() +"'")
+		return nil, errors.New("operand '" + e.operand + "'s not usable with '" + t1.String() + "' and '" + t2.String() + "'")
 	}
 
-	return types.NewBoolType(),nil
+	return types.NewBoolType(), nil
 }
 
 //=============================================================================
@@ -119,7 +119,7 @@ func (e *RelationalExpression) Info() *parser.Info {
 //===
 //=============================================================================
 
-func canEquateTo(t1,t2 types.Type) bool {
+func canEquateTo(t1, t2 types.Type) bool {
 	if t1.Code() == types.CodeTimeseries || t2.Code() == types.CodeTimeseries {
 		return false
 	}
@@ -141,7 +141,7 @@ func canEquateTo(t1,t2 types.Type) bool {
 
 //=============================================================================
 
-func canCompareTo(t1,t2 types.Type) bool {
+func canCompareTo(t1, t2 types.Type) bool {
 	if t1.Code() == types.CodeTimeseries || t2.Code() == types.CodeTimeseries {
 		return false
 	}

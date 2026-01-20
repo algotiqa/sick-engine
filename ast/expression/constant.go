@@ -25,10 +25,10 @@ THE SOFTWARE.
 package expression
 
 import (
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/core/values"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/core/types"
+	"github.com/algotiqa/tiq-engine/core/values"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -38,8 +38,8 @@ import (
 //=============================================================================
 
 type ConstantValueExpression struct {
-	Value  values.Value
-	info   *parser.Info
+	Value values.Value
+	info  *parser.Info
 }
 
 //=============================================================================
@@ -47,14 +47,14 @@ type ConstantValueExpression struct {
 func NewConstantValueExpression(value values.Value, info *parser.Info) *ConstantValueExpression {
 	return &ConstantValueExpression{
 		Value: value,
-		info : info,
+		info:  info,
 	}
 }
 
 //=============================================================================
 
 func (e *ConstantValueExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
-	return e.Value.Type(),nil
+	return e.Value.Type(), nil
 }
 
 //=============================================================================

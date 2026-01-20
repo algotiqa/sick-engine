@@ -27,11 +27,11 @@ package core
 import (
 	"io"
 
+	"github.com/algotiqa/tiq-engine/ast"
+	"github.com/algotiqa/tiq-engine/parser"
+	"github.com/algotiqa/tiq-engine/runtime"
+	"github.com/algotiqa/tiq-engine/tool"
 	"github.com/antlr4-go/antlr/v4"
-	"github.com/tradalia/sick-engine/ast"
-	"github.com/tradalia/sick-engine/parser"
-	"github.com/tradalia/sick-engine/runtime"
-	"github.com/tradalia/sick-engine/tool"
 )
 
 //=============================================================================
@@ -40,31 +40,31 @@ import (
 //===
 //=============================================================================
 
-func CreateEnvironment(path string) (*runtime.Environment,*parser.ParseErrors) {
+func CreateEnvironment(path string) (*runtime.Environment, *parser.ParseErrors) {
 	pr := parser.NewParseErrors()
 
-	files,err := tool.FindFiles(path, ".tsl")
+	files, err := tool.FindFiles(path, ".tsl")
 	if err != nil {
 		pe := parser.NewParseError(path, -1, -1, err.Error())
 		pr.AddError(pe)
-		return nil,pr
+		return nil, pr
 	}
 
 	e := runtime.NewEnvironment()
 
-	for _,file := range files {
-		script,errs := ParseFile(file)
+	for _, file := range files {
+		script, errs := ParseFile(file)
 		if !errs.IsEmpty() {
-			return nil,errs
+			return nil, errs
 		}
 
 		errs = e.AddScript(script)
 		if !errs.IsEmpty() {
-			return nil,errs
+			return nil, errs
 		}
 	}
 
-	return e,pr
+	return e, pr
 }
 
 //=============================================================================
@@ -74,12 +74,12 @@ func CreateEnvironment(path string) (*runtime.Environment,*parser.ParseErrors) {
 //=============================================================================
 
 func ParseFile(filename string) (*ast.Script, *parser.ParseErrors) {
-	stream,err := antlr.NewFileStream(filename)
+	stream, err := antlr.NewFileStream(filename)
 	if err != nil {
 		pr := parser.NewParseErrors()
 		pe := parser.NewParseError(filename, -1, -1, err.Error())
 		pr.AddError(pe)
-		return nil,pr
+		return nil, pr
 	}
 
 	return parse(stream)
@@ -100,9 +100,9 @@ func ParseReader(r io.Reader) (*ast.Script, *parser.ParseErrors) {
 //=============================================================================
 
 func parse(input antlr.CharStream) (*ast.Script, *parser.ParseErrors) {
-	lexer  := parser.NewTslLexer(input)
-	stream := antlr .NewCommonTokenStream(lexer,0)
-	p      := parser.NewTslParser(stream)
+	lexer := parser.NewTslLexer(input)
+	stream := antlr.NewCommonTokenStream(lexer, 0)
+	p := parser.NewTslParser(stream)
 
 	res := parser.NewParseErrors()
 	lis := parser.NewParseErrorListener(input.GetSourceName(), res)
@@ -115,12 +115,12 @@ func parse(input antlr.CharStream) (*ast.Script, *parser.ParseErrors) {
 	p.GetInterpreter().SetPredictionMode(antlr.PredictionModeLLExactAmbigDetection)
 	tree := p.Script()
 	if !res.IsEmpty() {
-		return nil,res
+		return nil, res
 	}
 
 	script := ast.Build(tree)
 
-	return script,res
+	return script, res
 }
 
 //=============================================================================

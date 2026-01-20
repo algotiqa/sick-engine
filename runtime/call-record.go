@@ -25,7 +25,7 @@ THE SOFTWARE.
 package runtime
 
 import (
-	"github.com/tradalia/sick-engine/core/values"
+	"github.com/algotiqa/tiq-engine/core/values"
 )
 
 //=============================================================================
@@ -59,4 +59,3 @@ func (cr *CallRecord) SetVariable(name, string, value values.Value) {
 }
 
 //=============================================================================
-

@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 package interfaces
 
-import "github.com/tradalia/sick-engine/parser"
+import "github.com/algotiqa/tiq-engine/parser"
 
 //=============================================================================
 
@@ -55,9 +55,9 @@ const (
 //=============================================================================
 
 type Symbol interface {
-	Id()       string
-	Kind()     Kind
-	Specie()   Specie
+	Id() string
+	Kind() Kind
+	Specie() Specie
 
 	InitScope(parent Scope) *parser.ParseError
 	Scope() Scope

@@ -25,7 +25,7 @@ THE SOFTWARE.
 package ast
 
 import (
-	"github.com/tradalia/sick-engine/core/types"
+	"github.com/algotiqa/tiq-engine/core/types"
 )
 
 //=============================================================================
@@ -48,7 +48,7 @@ type Script struct {
 
 func NewScript(filename string) *Script {
 	return &Script{
-		Filename : filename,
+		Filename: filename,
 	}
 }
 

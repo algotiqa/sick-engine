@@ -28,7 +28,7 @@ import (
 	"iter"
 	"maps"
 
-	"github.com/tradalia/sick-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
 )
 
 //=============================================================================
@@ -38,15 +38,15 @@ import (
 //=============================================================================
 
 type SymbolTable struct {
-	previous  *SymbolTable
-	symbols   map[string]interfaces.Symbol
+	previous *SymbolTable
+	symbols  map[string]interfaces.Symbol
 }
 
 //=============================================================================
 
 func NewSymbolTable() *SymbolTable {
 	return &SymbolTable{
-		symbols : make(map[string]interfaces.Symbol),
+		symbols: make(map[string]interfaces.Symbol),
 	}
 }
 
@@ -78,7 +78,7 @@ func (s *SymbolTable) Resolve(name string) interfaces.Symbol {
 //=============================================================================
 
 func (s *SymbolTable) Define(symbol interfaces.Symbol) bool {
-	_,ok := s.symbols[symbol.Id()]
+	_, ok := s.symbols[symbol.Id()]
 	if ok {
 		return false
 	}

@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 package statement
 
-import "github.com/tradalia/sick-engine/ast/expression"
+import "github.com/algotiqa/tiq-engine/ast/expression"
 
 //=============================================================================
 //===
@@ -33,15 +33,15 @@ import "github.com/tradalia/sick-engine/ast/expression"
 //=============================================================================
 
 type VarAssignment struct {
-	Chain       *expression.ChainedExpression
-	Expression   expression.Expression
+	Chain      *expression.ChainedExpression
+	Expression expression.Expression
 }
 
 //=============================================================================
 
 func NewVarAssignment(chain *expression.ChainedExpression, expression expression.Expression) *VarAssignment {
 	return &VarAssignment{
-		Chain     : chain,
+		Chain:      chain,
 		Expression: expression,
 	}
 }

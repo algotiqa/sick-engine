@@ -25,8 +25,8 @@ THE SOFTWARE.
 package types
 
 import (
-	"github.com/tradalia/sick-engine/core/data"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/core/data"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -36,8 +36,8 @@ import (
 //=============================================================================
 
 type ToFindOutType struct {
-	Name  *data.FQIdentifier
-	Info  *parser.Info
+	Name *data.FQIdentifier
+	Info *parser.Info
 }
 
 //=============================================================================

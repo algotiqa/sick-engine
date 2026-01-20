@@ -25,7 +25,7 @@ THE SOFTWARE.
 package main
 
 import (
-	"github.com/tradalia/sick-engine/core"
+	"github.com/algotiqa/tiq-engine/core"
 )
 
 //=============================================================================

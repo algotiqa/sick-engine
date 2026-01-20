@@ -25,8 +25,8 @@ THE SOFTWARE.
 package values
 
 import (
-	"github.com/tradalia/sick-engine/core/data"
-	"github.com/tradalia/sick-engine/core/types"
+	"github.com/algotiqa/tiq-engine/core/data"
+	"github.com/algotiqa/tiq-engine/core/types"
 )
 
 //=============================================================================

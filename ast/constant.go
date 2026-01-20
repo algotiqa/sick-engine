@@ -25,10 +25,10 @@ THE SOFTWARE.
 package ast
 
 import (
-	"github.com/tradalia/sick-engine/ast/expression"
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/ast/expression"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/core/types"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -48,16 +48,16 @@ type Constant struct {
 
 func NewConstant(name string, e expression.Expression, info *parser.Info) *Constant {
 	return &Constant{
-		name : name,
+		name:  name,
 		Value: e,
-		Info : info,
+		Info:  info,
 	}
 }
 
 //=============================================================================
 
 func (c *Constant) SetupType(s interfaces.Scope, depth int) error {
-	t,err := c.Value.ResolveType(s, nil, depth)
+	t, err := c.Value.ResolveType(s, nil, depth)
 	if err != nil {
 		return err
 	}

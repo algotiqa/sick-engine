@@ -25,8 +25,8 @@ THE SOFTWARE.
 package statement
 
 import (
-	"github.com/tradalia/sick-engine/ast/expression"
-	"github.com/tradalia/sick-engine/core/types"
+	"github.com/algotiqa/tiq-engine/ast/expression"
+	"github.com/algotiqa/tiq-engine/core/types"
 )
 
 //=============================================================================
@@ -45,8 +45,8 @@ type VarDeclaration struct {
 
 func NewVarDeclaration(name string, type_ types.Type, e expression.Expression) *VarDeclaration {
 	return &VarDeclaration{
-		Name      : name,
-		Type      : type_,
+		Name:       name,
+		Type:       type_,
 		Expression: e,
 	}
 }

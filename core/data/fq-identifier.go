@@ -25,7 +25,7 @@ THE SOFTWARE.
 package data
 
 import (
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -62,7 +62,7 @@ func (i *FQIdentifier) String() string {
 		return i.Name
 	}
 
-	return i.Pack +"."+ i.Name
+	return i.Pack + "." + i.Name
 }
 
 //=============================================================================

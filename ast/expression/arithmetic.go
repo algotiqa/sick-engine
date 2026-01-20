@@ -27,9 +27,9 @@ package expression
 import (
 	"errors"
 
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/core/types"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -52,27 +52,27 @@ const (
 //=============================================================================
 
 type ArithmeticExpression struct {
-	operand  string
-	left     Expression
-	right    Expression
-	info     *parser.Info
+	operand string
+	left    Expression
+	right   Expression
+	info    *parser.Info
 }
 
 //=============================================================================
 
 func NewArithmeticExpression(operand string, left, right Expression, info *parser.Info) *ArithmeticExpression {
 	return &ArithmeticExpression{
-		operand : operand,
-		left    : left,
-		right   : right,
-		info    : info,
+		operand: operand,
+		left:    left,
+		right:   right,
+		info:    info,
 	}
 }
 
 //=============================================================================
 
 func (e *ArithmeticExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
-	t1, err1 := e.left .ResolveType(scope, embedder, depth)
+	t1, err1 := e.left.ResolveType(scope, embedder, depth)
 	t2, err2 := e.right.ResolveType(scope, embedder, depth)
 	if err1 != nil {
 		return nil, err1
@@ -87,10 +87,10 @@ func (e *ArithmeticExpression) ResolveType(scope interfaces.Scope, embedder inte
 
 	t := combineTypes(e.operand, t1, t2)
 	if t == nil {
-		return nil, errors.New("operand types mismatch: '" +t1.String() + "' and '" + t2.String() +"'")
+		return nil, errors.New("operand types mismatch: '" + t1.String() + "' and '" + t2.String() + "'")
 	}
 
-	return t,nil
+	return t, nil
 }
 
 //=============================================================================

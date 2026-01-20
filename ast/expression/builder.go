@@ -27,10 +27,10 @@ package expression
 import (
 	"strconv"
 
+	"github.com/algotiqa/tiq-engine/core/data"
+	"github.com/algotiqa/tiq-engine/core/values"
+	"github.com/algotiqa/tiq-engine/parser"
 	"github.com/antlr4-go/antlr/v4"
-	"github.com/tradalia/sick-engine/core/data"
-	"github.com/tradalia/sick-engine/core/values"
-	"github.com/tradalia/sick-engine/parser"
 )
 
 //=============================================================================
@@ -68,8 +68,8 @@ func ConvertExpression(tree parser.IExpressionContext) Expression {
 	//--- Lastly, other possibilities
 
 	unaryExpr := tree.UnaryExpression()
-	listExpr  := tree.ListExpression()
-	mapExpr   := tree.MapExpression()
+	listExpr := tree.ListExpression()
+	mapExpr := tree.MapExpression()
 
 	if unaryExpr != nil {
 		return convertUnaryExpression(unaryExpr)
@@ -88,7 +88,7 @@ func convertArithmeticExpression(tree parser.IExpressionContext) Expression {
 	if tree.STAR() != nil || tree.SLASH() != nil || tree.PLUS() != nil || tree.MINUS() != nil {
 		expr1 := ConvertExpression(tree.Expression(0))
 		expr2 := ConvertExpression(tree.Expression(1))
-		info  := parser.NewInfo(tree)
+		info := parser.NewInfo(tree)
 
 		if tree.STAR() != nil {
 			return NewArithmeticExpression(AritOpMult, expr1, expr2, info)
@@ -113,13 +113,13 @@ func convertArithmeticExpression(tree parser.IExpressionContext) Expression {
 //=============================================================================
 
 func convertRelationalExpression(tree parser.IExpressionContext) Expression {
-	if  tree.EQUAL()         != nil || tree.NOT_EQUAL()        != nil ||
-		tree.LESS_THAN()     != nil || tree.GREATER_THAN()     != nil ||
+	if tree.EQUAL() != nil || tree.NOT_EQUAL() != nil ||
+		tree.LESS_THAN() != nil || tree.GREATER_THAN() != nil ||
 		tree.LESS_OR_EQUAL() != nil || tree.GREATER_OR_EQUAL() != nil {
 
 		expr1 := ConvertExpression(tree.Expression(0))
 		expr2 := ConvertExpression(tree.Expression(1))
-		info  := parser.NewInfo(tree)
+		info := parser.NewInfo(tree)
 
 		if tree.EQUAL() != nil {
 			return NewRelationalExpression(RelOpEqual, expr1, expr2, info)
@@ -186,9 +186,9 @@ func buildExpressionList(list []parser.IExpressionContext) []Expression {
 
 func convertUnaryExpression(tree parser.IUnaryExpressionContext) Expression {
 	exprParen := tree.ExpressionInParenthesis()
-	constValue:= tree.ConstantValueExpression()
+	constValue := tree.ConstantValueExpression()
 	chainExpr := tree.ChainedExpression()
-	barExpr   := tree.BarExpression()
+	barExpr := tree.BarExpression()
 
 	if exprParen != nil {
 		return ConvertExpression(exprParen.Expression())
@@ -247,11 +247,11 @@ func ConvertChainedExpression(tree parser.IChainedExpressionContext) *ChainedExp
 	ce := NewChainedExpression(tree.THIS() != nil, tree.NEW() != nil, parser.NewInfo(tree))
 
 	if tree.NEW() != nil {
-		ce.FQClass    = data.NewFQIdentifier(tree.FqIdentifier())
+		ce.FQClass = data.NewFQIdentifier(tree.FqIdentifier())
 		ce.InstParams = buildExpressionList(tree.ParamsExpression().AllExpression())
 	}
 
-	for _,item := range tree.AllChainItem() {
+	for _, item := range tree.AllChainItem() {
 		ci := convertChainItem(item)
 		ce.AddItem(ci)
 	}
@@ -262,11 +262,11 @@ func ConvertChainedExpression(tree parser.IChainedExpressionContext) *ChainedExp
 //=============================================================================
 
 func convertChainItem(tree parser.IChainItemContext) *ChainItem {
-	name   := tree.IDENTIFIER().GetText()
+	name := tree.IDENTIFIER().GetText()
 	params := tree.ParamsExpression()
-	acc    := tree.AccessorExpression()
+	acc := tree.AccessorExpression()
 
-	var accessor  Expression
+	var accessor Expression
 	var paramList []Expression
 
 	if acc != nil {
@@ -285,7 +285,7 @@ func convertChainItem(tree parser.IChainItemContext) *ChainItem {
 func convertListExpression(tree parser.IListExpressionContext) Expression {
 	le := NewListExpression(parser.NewInfo(tree))
 
-	for _,e := range tree.AllExpression() {
+	for _, e := range tree.AllExpression() {
 		le.AddExpression(ConvertExpression(e))
 	}
 
@@ -297,8 +297,8 @@ func convertListExpression(tree parser.IListExpressionContext) Expression {
 func convertMapExpression(tree parser.IMapExpressionContext) Expression {
 	mex := NewMapExpression(parser.NewInfo(tree))
 
-	for _,me := range tree.AllKeyValueCouple() {
-		k := convertKeyValue  (me.KeyValue())
+	for _, me := range tree.AllKeyValueCouple() {
+		k := convertKeyValue(me.KeyValue())
 		e := ConvertExpression(me.Expression())
 		mex.Set(k, e)
 	}
@@ -308,10 +308,10 @@ func convertMapExpression(tree parser.IMapExpressionContext) Expression {
 
 //=============================================================================
 
-func convertKeyValue(tree parser.IKeyValueContext) values.Value{
+func convertKeyValue(tree parser.IKeyValueContext) values.Value {
 	//--- Integers
 
-	intVal  := tree.INT_VALUE()
+	intVal := tree.INT_VALUE()
 	if intVal != nil {
 		return convertConstantInt(tree.GetParser(), intVal)
 	}
@@ -332,7 +332,7 @@ func convertKeyValue(tree parser.IKeyValueContext) values.Value{
 
 	//--- Strings
 
-	strVal  := tree.STRING_VALUE()
+	strVal := tree.STRING_VALUE()
 	if strVal != nil {
 		return convertConstantString(strVal)
 	}
@@ -384,7 +384,7 @@ func convertConstantValue(tree parser.IConstantValueExpressionContext) values.Va
 
 	//--- Strings
 
-	strVal  := tree.STRING_VALUE()
+	strVal := tree.STRING_VALUE()
 	if strVal != nil {
 		return convertConstantString(strVal)
 	}
@@ -414,9 +414,9 @@ func convertConstantValue(tree parser.IConstantValueExpressionContext) values.Va
 //=============================================================================
 
 func convertConstantInt(p antlr.Parser, val antlr.TerminalNode) values.Value {
-	i,err := strconv.Atoi(val.GetText())
+	i, err := strconv.Atoi(val.GetText())
 	if err != nil {
-		parser.RaiseError(p, "invalid integer value : " + val.GetText())
+		parser.RaiseError(p, "invalid integer value : "+val.GetText())
 	}
 
 	return values.NewIntValue(int64(i))
@@ -425,9 +425,9 @@ func convertConstantInt(p antlr.Parser, val antlr.TerminalNode) values.Value {
 //=============================================================================
 
 func convertConstantReal(p antlr.Parser, val antlr.TerminalNode) values.Value {
-	f,err := strconv.ParseFloat(val.GetText(), 64)
+	f, err := strconv.ParseFloat(val.GetText(), 64)
 	if err != nil {
-		parser.RaiseError(p, "Invalid real value : " + val.GetText())
+		parser.RaiseError(p, "Invalid real value : "+val.GetText())
 	}
 
 	return values.NewRealValue(f)
@@ -436,13 +436,13 @@ func convertConstantReal(p antlr.Parser, val antlr.TerminalNode) values.Value {
 //=============================================================================
 
 func convertConstantTime(p antlr.Parser, val parser.ITimeValueContext) values.Value {
-	hh,_ := strconv.Atoi(val.INT_VALUE(0).GetText())
-	mm,_ := strconv.Atoi(val.INT_VALUE(1).GetText())
+	hh, _ := strconv.Atoi(val.INT_VALUE(0).GetText())
+	mm, _ := strconv.Atoi(val.INT_VALUE(1).GetText())
 
 	v := data.NewTime(hh, mm)
 
 	if !v.IsValid() {
-		parser.RaiseError(p, "Invalid time value : " + val.GetText())
+		parser.RaiseError(p, "Invalid time value : "+val.GetText())
 	}
 
 	return values.NewTimeValue(v)
@@ -451,14 +451,14 @@ func convertConstantTime(p antlr.Parser, val parser.ITimeValueContext) values.Va
 //=============================================================================
 
 func convertConstantDate(p antlr.Parser, val parser.IDateValueContext) values.Value {
-	y,_ := strconv.Atoi(val.INT_VALUE(0).GetText())
-	m,_ := strconv.Atoi(val.INT_VALUE(1).GetText())
-	d,_ := strconv.Atoi(val.INT_VALUE(2).GetText())
+	y, _ := strconv.Atoi(val.INT_VALUE(0).GetText())
+	m, _ := strconv.Atoi(val.INT_VALUE(1).GetText())
+	d, _ := strconv.Atoi(val.INT_VALUE(2).GetText())
 
 	v := data.NewDate(y, m, d)
 
 	if !v.IsValid() {
-		parser.RaiseError(p, "Invalid date value : " + val.GetText())
+		parser.RaiseError(p, "Invalid date value : "+val.GetText())
 	}
 
 	return values.NewDateValue(v)
@@ -468,7 +468,7 @@ func convertConstantDate(p antlr.Parser, val parser.IDateValueContext) values.Va
 
 func convertConstantString(val antlr.TerminalNode) values.Value {
 	text := val.GetText()
-	text  = text[1:len(text)-1]
+	text = text[1 : len(text)-1]
 
 	return values.NewStringValue(text)
 }
@@ -477,7 +477,7 @@ func convertConstantString(val antlr.TerminalNode) values.Value {
 
 func convertConstantError(val antlr.TerminalNode) values.Value {
 	text := val.GetText()
-	text  = text[1:len(text)-1]
+	text = text[1 : len(text)-1]
 
 	return values.NewErrorValue(text)
 }

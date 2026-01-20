@@ -25,9 +25,9 @@ THE SOFTWARE.
 package runtime
 
 import (
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/core/types"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -37,9 +37,9 @@ import (
 //=============================================================================
 
 type Package struct {
-	name       string
-	scope      interfaces.Scope
-	classFunc  []*types.Function
+	name      string
+	scope     interfaces.Scope
+	classFunc []*types.Function
 }
 
 //=============================================================================
@@ -60,18 +60,18 @@ func (p *Package) AddFunction(f *types.Function) {
 
 //=============================================================================
 
-func (p *Package) AssignMethodsToClasses() *parser.ParseError{
+func (p *Package) AssignMethodsToClasses() *parser.ParseError {
 	for _, f := range p.classFunc {
 		s := p.scope.ResolveLocally(f.Class.Name)
 		if s != nil {
 			if s.Kind() != interfaces.KindClass {
-				return parser.NewParseErrorFromInfo(f.Info, "function doesn't reference a class: " + f.Class.Name)
+				return parser.NewParseErrorFromInfo(f.Info, "function doesn't reference a class: "+f.Class.Name)
 			}
 
 			c := s.(*types.ClassType)
 			c.AddFunction(f)
 		} else {
-			return parser.NewParseErrorFromInfo(f.Info, "can't resolve class for function: " + f.Class.String())
+			return parser.NewParseErrorFromInfo(f.Info, "can't resolve class for function: "+f.Class.String())
 		}
 	}
 

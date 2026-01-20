@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 package statement
 
-import "github.com/tradalia/sick-engine/ast/expression"
+import "github.com/algotiqa/tiq-engine/ast/expression"
 
 //=============================================================================
 //===
@@ -34,14 +34,14 @@ import "github.com/tradalia/sick-engine/ast/expression"
 
 type FunctionCallAssignment struct {
 	Chains       []*expression.ChainedExpression
-	FunctionCall   *expression.ChainedExpression
+	FunctionCall *expression.ChainedExpression
 }
 
 //=============================================================================
 
 func NewFunctionCallAssignment(chains []*expression.ChainedExpression, fc *expression.ChainedExpression) *FunctionCallAssignment {
 	return &FunctionCallAssignment{
-		Chains      : chains,
+		Chains:       chains,
 		FunctionCall: fc,
 	}
 }

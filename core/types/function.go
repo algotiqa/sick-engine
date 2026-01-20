@@ -27,9 +27,9 @@ package types
 import (
 	"strings"
 
-	"github.com/tradalia/sick-engine/core/data"
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/core/data"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -39,23 +39,24 @@ import (
 //=============================================================================
 
 type Function struct {
-	name     string
-	Class    *data.FQIdentifier
-	Params   []*Param
-	Returns  []Type
-	Block    *data.Block
-	Info     *parser.Info
-	scope    interfaces.Scope
+	name    string
+	Class   *data.FQIdentifier
+	Params  []*Param
+	Returns []Type
+	Block   *data.Block
+	Info    *parser.Info
+	scope   interfaces.Scope
 }
 
 //=============================================================================
 
 func NewFunction(name string, info *parser.Info) *Function {
 	return &Function{
-		name : name,
-		Info : info,
+		name: name,
+		Info: info,
 	}
 }
+
 //=============================================================================
 
 func (f *Function) AddParam(p *Param) {
@@ -83,7 +84,7 @@ func (f *Function) Id() string {
 	sb.WriteString(f.name)
 	sb.WriteString("|")
 
-	for _,p := range f.Params {
+	for _, p := range f.Params {
 		sb.WriteString("|")
 		sb.WriteString(p.Type.String())
 	}
@@ -110,7 +111,7 @@ func (f *Function) InitScope(parent interfaces.Scope) *parser.ParseError {
 
 	for _, param := range f.Params {
 		if !f.scope.Define(param) {
-			return parser.NewParseErrorFromInfo(param.Info, "parameter duplicated in function: "+ param.Id())
+			return parser.NewParseErrorFromInfo(param.Info, "parameter duplicated in function: "+param.Id())
 		}
 	}
 

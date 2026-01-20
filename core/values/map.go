@@ -27,7 +27,7 @@ package values
 import (
 	"strings"
 
-	"github.com/tradalia/sick-engine/core/types"
+	"github.com/algotiqa/tiq-engine/core/types"
 )
 
 //=============================================================================
@@ -46,9 +46,9 @@ type MapValue struct {
 
 func NewMapValue(keyType, valueType types.Type) *MapValue {
 	return &MapValue{
-		keyType  : keyType,
+		keyType:   keyType,
 		valueType: valueType,
-		values   : map[Value]Value{},
+		values:    map[Value]Value{},
 	}
 }
 

@@ -25,7 +25,7 @@ THE SOFTWARE.
 package session
 
 import (
-	"github.com/tradalia/sick-engine/core"
+	"github.com/algotiqa/tiq-engine/core"
 	"time"
 )
 
@@ -58,9 +58,9 @@ type Pause struct {
 //=============================================================================
 
 func (td *TradingSession) IsStartOfSession(t time.Time, timeframe int) bool {
-	h,m,_ := t.Clock()
-	time  := core.NewTime(h,m).Sub(0, timeframe)
-	dow   := int(t.Weekday())
+	h, m, _ := t.Clock()
+	time := core.NewTime(h, m).Sub(0, timeframe)
+	dow := int(t.Weekday())
 
 	for _, sd := range td.Days {
 		if sd.isStartOfSession(dow, time) {

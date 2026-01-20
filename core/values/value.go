@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 package values
 
-import "github.com/tradalia/sick-engine/core/types"
+import "github.com/algotiqa/tiq-engine/core/types"
 
 //=============================================================================
 //===
@@ -36,7 +36,7 @@ type Value interface {
 	Data() any
 	Type() types.Type
 
-	Equals  (other Value) bool
+	Equals(other Value) bool
 	LessThan(other Value) bool
 	String() string
 }

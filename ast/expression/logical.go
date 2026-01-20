@@ -27,9 +27,9 @@ package expression
 import (
 	"errors"
 
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/core/types"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -48,21 +48,21 @@ type AndExpression struct {
 func NewAndExpression(expressions []Expression, info *parser.Info) *AndExpression {
 	return &AndExpression{
 		expressions: expressions,
-		info       : info,
+		info:        info,
 	}
 }
 
 //=============================================================================
 
 func (e *AndExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
-	for _,ex := range e.expressions {
+	for _, ex := range e.expressions {
 		err := checkBoolean(ex, scope, embedder, depth)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return types.NewBoolType(),nil
+	return types.NewBoolType(), nil
 }
 
 //=============================================================================
@@ -87,21 +87,21 @@ type OrExpression struct {
 func NewOrExpression(expressions []Expression, info *parser.Info) *OrExpression {
 	return &OrExpression{
 		expressions: expressions,
-		info       : info,
+		info:        info,
 	}
 }
 
 //=============================================================================
 
 func (e *OrExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
-	for _,ex := range e.expressions {
+	for _, ex := range e.expressions {
 		err := checkBoolean(ex, scope, embedder, depth)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return types.NewBoolType(),nil
+	return types.NewBoolType(), nil
 }
 
 //=============================================================================
@@ -126,7 +126,7 @@ type NotExpression struct {
 func NewNotExpression(e Expression, info *parser.Info) *NotExpression {
 	return &NotExpression{
 		expression: e,
-		info      : info,
+		info:       info,
 	}
 }
 
@@ -138,7 +138,7 @@ func (e *NotExpression) ResolveType(scope interfaces.Scope, embedder interfaces.
 		return nil, err
 	}
 
-	return types.NewBoolType(),nil
+	return types.NewBoolType(), nil
 }
 
 //=============================================================================
@@ -154,7 +154,7 @@ func (e *NotExpression) Info() *parser.Info {
 //=============================================================================
 
 func checkBoolean(e Expression, scope interfaces.Scope, embedder interfaces.Symbol, depth int) error {
-	t,err := e.ResolveType(scope, embedder, depth)
+	t, err := e.ResolveType(scope, embedder, depth)
 	if err != nil {
 		return err
 	}

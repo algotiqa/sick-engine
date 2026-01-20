@@ -27,7 +27,7 @@ package values
 import (
 	"strings"
 
-	"github.com/tradalia/sick-engine/core/types"
+	"github.com/algotiqa/tiq-engine/core/types"
 )
 
 //=============================================================================

@@ -25,9 +25,9 @@ THE SOFTWARE.
 package types
 
 import (
-	"github.com/tradalia/sick-engine/core/data"
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/core/data"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -37,20 +37,20 @@ import (
 //=============================================================================
 
 type EnumType struct {
-	name    string
-	IsInt   bool
-	Items   []*EnumItem
-	Info    *parser.Info
-	scope   interfaces.Scope
+	name  string
+	IsInt bool
+	Items []*EnumItem
+	Info  *parser.Info
+	scope interfaces.Scope
 }
 
 //=============================================================================
 
 func NewEnumType(name string, isInt bool, info *parser.Info) *EnumType {
 	return &EnumType{
-		name   : name,
-		IsInt  : isInt,
-		Info   : info,
+		name:  name,
+		IsInt: isInt,
+		Info:  info,
 	}
 }
 
@@ -70,7 +70,7 @@ func (e *EnumType) Size() int {
 
 func (e *EnumType) AssignCodes() {
 	for i, item := range e.Items {
-		item.Code = i+1
+		item.Code = i + 1
 	}
 }
 
@@ -83,7 +83,7 @@ func (e *EnumType) Code() int8 {
 //=============================================================================
 
 func (e *EnumType) String() string {
-	return "enum="+ e.name
+	return "enum=" + e.name
 }
 
 //=============================================================================
@@ -113,7 +113,7 @@ func (e *EnumType) InitScope(parent interfaces.Scope) *parser.ParseError {
 
 	for _, item := range e.Items {
 		if !e.scope.Define(item) {
-			return parser.NewParseErrorFromInfo(e.Info, "item duplicated in enum: "+ item.Id())
+			return parser.NewParseErrorFromInfo(e.Info, "item duplicated in enum: "+item.Id())
 		}
 	}
 	return nil

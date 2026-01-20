@@ -27,9 +27,9 @@ package expression
 import (
 	"errors"
 
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/core/types"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -39,8 +39,8 @@ import (
 //=============================================================================
 
 type ListExpression struct {
-	Values   []Expression
-	info     *parser.Info
+	Values []Expression
+	info   *parser.Info
 }
 
 //=============================================================================
@@ -60,7 +60,7 @@ func (e *ListExpression) AddExpression(exp Expression) {
 //=============================================================================
 
 func (e *ListExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
-	return nil,errors.New("not implemented")
+	return nil, errors.New("not implemented")
 }
 
 //=============================================================================

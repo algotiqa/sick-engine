@@ -27,10 +27,10 @@ package expression
 import (
 	"errors"
 
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/core/values"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/core/types"
+	"github.com/algotiqa/tiq-engine/core/values"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -40,8 +40,8 @@ import (
 //=============================================================================
 
 type MapExpression struct {
-	Values   map[values.Value]Expression
-	info     *parser.Info
+	Values map[values.Value]Expression
+	info   *parser.Info
 }
 
 //=============================================================================
@@ -49,7 +49,7 @@ type MapExpression struct {
 func NewMapExpression(info *parser.Info) *MapExpression {
 	return &MapExpression{
 		Values: map[values.Value]Expression{},
-		info  : info,
+		info:   info,
 	}
 }
 
@@ -62,7 +62,7 @@ func (e *MapExpression) Set(key values.Value, value Expression) {
 //=============================================================================
 
 func (e *MapExpression) ResolveType(scope interfaces.Scope, embedder interfaces.Symbol, depth int) (types.Type, error) {
-	return nil,errors.New("not implemented")
+	return nil, errors.New("not implemented")
 }
 
 //=============================================================================

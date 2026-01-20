@@ -25,8 +25,8 @@ THE SOFTWARE.
 package statement
 
 import (
-	"github.com/tradalia/sick-engine/ast/expression"
-	"github.com/tradalia/sick-engine/core/data"
+	"github.com/algotiqa/tiq-engine/ast/expression"
+	"github.com/algotiqa/tiq-engine/core/data"
 )
 
 //=============================================================================
@@ -64,8 +64,8 @@ func (s *IfStatement) Execute() error {
 //=============================================================================
 
 type ConditionalBlock struct {
-	condition  expression.Expression
-	block      *data.Block
+	condition expression.Expression
+	block     *data.Block
 }
 
 //=============================================================================

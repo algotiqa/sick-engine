@@ -27,9 +27,9 @@ package expression
 import (
 	"errors"
 
-	"github.com/tradalia/sick-engine/core/interfaces"
-	"github.com/tradalia/sick-engine/core/types"
-	"github.com/tradalia/sick-engine/parser"
+	"github.com/algotiqa/tiq-engine/core/interfaces"
+	"github.com/algotiqa/tiq-engine/core/types"
+	"github.com/algotiqa/tiq-engine/parser"
 )
 
 //=============================================================================
@@ -57,9 +57,9 @@ type BarAccessExpression struct {
 
 func NewBarAccessExpression(bar int, accessor Expression, info *parser.Info) *BarAccessExpression {
 	return &BarAccessExpression{
-		Bar     : bar,
+		Bar:      bar,
 		Accessor: accessor,
-		info    : info,
+		info:     info,
 	}
 }
 
@@ -72,10 +72,10 @@ func (e *BarAccessExpression) ResolveType(scope interfaces.Scope, embedder inter
 	}
 
 	if t.Code() != types.CodeInt {
-		return nil,errors.New("accessor's type must be int: '" +t.String() + "'")
+		return nil, errors.New("accessor's type must be int: '" + t.String() + "'")
 	}
 
-	return types.NewRealType(),nil
+	return types.NewRealType(), nil
 }
 
 //=============================================================================
