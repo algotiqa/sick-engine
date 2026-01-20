@@ -62,7 +62,7 @@ func (p *Package) AddFunction(f *types.Function) {
 
 func (p *Package) AssignMethodsToClasses() *parser.ParseError {
 	for _, f := range p.classFunc {
-		s := p.scope.ResolveLocally(f.Class.Name)
+		s := p.scope.Resolve(f.Class.Name)
 		if s != nil {
 			if s.Kind() != interfaces.KindClass {
 				return parser.NewParseErrorFromInfo(f.Info, "function doesn't reference a class: "+f.Class.Name)

@@ -100,9 +100,9 @@ func ParseReader(r io.Reader) (*ast.Script, *parser.ParseErrors) {
 //=============================================================================
 
 func parse(input antlr.CharStream) (*ast.Script, *parser.ParseErrors) {
-	lexer := parser.NewTslLexer(input)
+	lexer := parser.NewTiqLexer(input)
 	stream := antlr.NewCommonTokenStream(lexer, 0)
-	p := parser.NewTslParser(stream)
+	p := parser.NewTiqParser(stream)
 
 	res := parser.NewParseErrors()
 	lis := parser.NewParseErrorListener(input.GetSourceName(), res)

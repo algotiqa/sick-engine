@@ -111,7 +111,7 @@ func (e *Environment) Build() *parser.ParseError {
 //=============================================================================
 
 func (e *Environment) getOrCreatePackage(name string) *Package {
-	pac := e.scope.ResolveLocally(name)
+	pac := e.scope.Resolve(name)
 	if pac == nil {
 		pac = NewPackage(name, e.scope)
 		e.scope.Define(pac)
@@ -287,7 +287,7 @@ func (e *Environment) resolveType(scope interfaces.Scope, t types.Type) (types.T
 
 func (e *Environment) searchType(scope interfaces.Scope, name *data.FQIdentifier) types.Type {
 	if name.Pack != "" {
-		s := scope.ResolveGlobally(name.Pack)
+		s := scope.Resolve(name.Pack)
 		if s == nil || s.Kind() != interfaces.KindPackage {
 			return nil
 		}
@@ -295,7 +295,7 @@ func (e *Environment) searchType(scope interfaces.Scope, name *data.FQIdentifier
 		scope = s.(*Package).scope
 	}
 
-	t := scope.ResolveLocally(name.Name)
+	t := scope.Resolve(name.Name)
 	if t != nil {
 		if t.Specie() == interfaces.SpecieType {
 			return t.(types.Type)

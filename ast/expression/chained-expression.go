@@ -145,23 +145,24 @@ func (e *ChainedExpression) resolvePlain(scope interfaces.Scope, embedder interf
 	if sym.Kind() == interfaces.KindPackage {
 	}
 
-	return e.resolveChainType(sym, 1, depth)
+	//TOFIX:	return e.resolveChainType(sym, 1, depth)
+	return e.resolveChainType(sym, sym, 1, depth)
 }
 
 //=============================================================================
 
 func (e *ChainedExpression) resolveChainType(prefix, embedder interfaces.Symbol, index int, depth int) (types.Type, error) {
-	for i := index; i < len(e.Chain); i++ {
-		item := e.Chain[i]
-
-		sym, err := e.resolveChainItem(item, scope, embedder, depth)
-
-		s := scope.Resolve(item.Name)
-		if s == nil {
-			return nil, errors.New("'" + item.Name + "' was not found")
-		}
-
-	}
+	//for i := index; i < len(e.Chain); i++ {
+	//	item := e.Chain[i]
+	//
+	//	sym, err := e.resolveChainItem(item, scope, embedder, depth)
+	//
+	//	s := scope.Resolve(item.Name)
+	//	if s == nil {
+	//		return nil, errors.New("'" + item.Name + "' was not found")
+	//	}
+	//
+	//}
 
 	return nil, nil
 }
